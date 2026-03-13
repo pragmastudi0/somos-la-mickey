@@ -216,7 +216,7 @@ export default function Dashboard() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <ShoppingBag size={13} style={{ color: '#444444', flexShrink: 0 }} />
                         <div>
-                          <div style={{ fontSize: 13, fontWeight: 500 }}>{cliente?.nombre || 'Desconocido'}</div>
+                          <div style={{ fontSize: 13, fontWeight: 500, color: '#FFFFFF' }}>{cliente?.nombre || 'Desconocido'}</div>
                           <div style={{ fontSize: 11, color: '#444444', marginTop: 1 }}>{fmtDate(cp.fecha)}</div>
                         </div>
                       </div>
