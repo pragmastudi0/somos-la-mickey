@@ -31,17 +31,11 @@ export default function Reintegros() {
     setPagando(ciclo.id);
     const today = new Date().toISOString().split('T')[0];
     await base44.entities.Ciclo.update(ciclo.id, {
-      retirado: true,
-      monto_retirado: ciclo.acum_reintegro,
-      fecha_retiro: today,
+      retirado: true, monto_retirado: ciclo.acum_reintegro, fecha_retiro: today,
     });
     await base44.entities.Ciclo.create({
-      cliente_id: ciclo.cliente_id,
-      numero: (ciclo.numero || 0) + 1,
-      acum_reintegro: 0,
-      compras_count: 0,
-      puede_retirar: false,
-      retirado: false,
+      cliente_id: ciclo.cliente_id, numero: (ciclo.numero || 0) + 1,
+      acum_reintegro: 0, compras_count: 0, puede_retirar: false, retirado: false,
     });
     setPagando(null);
     load();
@@ -52,97 +46,86 @@ export default function Reintegros() {
   const totalPendiente = pendientes.reduce((s, c) => s + (c.acum_reintegro || 0), 0);
 
   return (
-    <div style={{ padding: '32px 28px', maxWidth: 900, margin: '0 auto' }}>
+    <div style={{ padding: '32px 28px', maxWidth: 900, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{
-          fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24,
-          color: '#f0f0f8', margin: 0, letterSpacing: '-0.02em',
-        }}>Reintegros</h1>
-        <p style={{ color: '#3a3a50', fontSize: 13, margin: '4px 0 0' }}>
-          Gestión de pagos a socios
-        </p>
+        <h1 style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 26, color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em' }}>
+          Reintegros
+        </h1>
+        <p style={{ color: '#888888', fontSize: 13, margin: '4px 0 0' }}>Gestión de pagos a socios</p>
       </div>
 
       {/* Banner total */}
       {totalPendiente > 0 && (
         <div style={{
-          background: 'rgba(200,240,74,0.05)',
-          border: '1px solid rgba(200,240,74,0.15)',
-          borderRadius: 14, padding: '18px 22px', marginBottom: 22,
+          background: 'rgba(232,0,29,0.06)',
+          border: '1px solid rgba(232,0,29,0.2)',
+          borderRadius: 14, padding: '20px 24px', marginBottom: 22,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
           <div>
-            <div style={{ color: '#c8f04a', fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', marginBottom: 4 }}>
+            <div style={{ color: '#E8001D', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 4 }}>
               TOTAL A PAGAR
             </div>
-            <div style={{
-              fontFamily: 'Syne, sans-serif', fontWeight: 800,
-              fontSize: 36, color: '#c8f04a', letterSpacing: '-0.02em',
-            }}>
+            <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 40, color: '#F9D100', letterSpacing: '-0.03em' }}>
               {fmt(totalPendiente)}
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 22, color: '#f0f0f8' }}>
+            <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 28, color: '#FFFFFF' }}>
               {pendientes.length}
             </div>
-            <div style={{ color: '#55556a', fontSize: 12 }}>socios pendientes</div>
+            <div style={{ color: '#888888', fontSize: 12 }}>socios pendientes</div>
           </div>
         </div>
       )}
 
       {loading ? (
-        <div style={{ color: '#3a3a50', textAlign: 'center', padding: 60 }}>Cargando...</div>
+        <div style={{ color: '#444444', textAlign: 'center', padding: 60 }}>Cargando...</div>
       ) : (
         <>
           {/* Pendientes */}
           {pendientes.length > 0 && (
             <div style={{ marginBottom: 28 }}>
-              <div style={{ color: '#8a8a9a', fontSize: 12, fontWeight: 600, letterSpacing: '0.05em', marginBottom: 10 }}>
+              <div style={{ color: '#888888', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', marginBottom: 10 }}>
                 PENDIENTES DE PAGO
               </div>
-              <div style={{
-                background: '#0f0f1c', border: '1px solid rgba(255,255,255,0.07)',
-                borderRadius: 14, overflow: 'hidden',
-              }}>
+              <div style={{ background: '#161616', border: '1px solid #1F1F1F', borderRadius: 14, overflow: 'hidden' }}>
                 {pendientes.map((ciclo, i) => {
                   const cliente = clientes.find(c => c.id === ciclo.cliente_id);
                   return (
                     <div key={ciclo.id} style={{
                       padding: '16px 20px',
-                      borderBottom: i < pendientes.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                      borderBottom: i < pendientes.length - 1 ? '1px solid #1F1F1F' : 'none',
                       display: 'flex', alignItems: 'center', gap: 14,
                     }}>
                       <div style={{
-                        width: 38, height: 38, borderRadius: 9, flexShrink: 0,
-                        background: 'rgba(200,240,74,0.08)',
+                        width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+                        background: 'rgba(232,0,29,0.1)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontFamily: 'Syne, sans-serif', fontWeight: 700, color: '#c8f04a', fontSize: 15,
+                        fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: '#E8001D', fontSize: 16,
                       }}>
                         {cliente?.nombre?.charAt(0).toUpperCase()}
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 600, fontSize: 14 }}>{cliente?.nombre}</div>
-                        <div style={{ color: '#3a3a50', fontSize: 11, marginTop: 2 }}>
+                        <div style={{ color: '#555555', fontSize: 11, marginTop: 2 }}>
                           Ciclo #{ciclo.numero} · {ciclo.compras_count} compras
                         </div>
                       </div>
-                      <div style={{
-                        fontFamily: 'Syne, sans-serif', fontWeight: 800,
-                        fontSize: 20, color: '#c8f04a', marginRight: 8,
-                      }}>
+                      <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 22, color: '#F9D100', marginRight: 8 }}>
                         {fmt(ciclo.acum_reintegro)}
                       </div>
                       <button
                         onClick={() => handlePagar(ciclo)}
                         disabled={pagando === ciclo.id}
                         style={{
-                          background: '#c8f04a', color: '#07070f',
-                          border: 'none', borderRadius: 8,
-                          padding: '9px 14px', cursor: pagando === ciclo.id ? 'not-allowed' : 'pointer',
-                          fontSize: 13, fontWeight: 600,
+                          background: '#E8001D', color: '#FFFFFF',
+                          border: 'none', borderRadius: 99,
+                          padding: '9px 16px', cursor: pagando === ciclo.id ? 'not-allowed' : 'pointer',
+                          fontSize: 13, fontWeight: 700,
                           opacity: pagando === ciclo.id ? 0.6 : 1,
                           display: 'flex', alignItems: 'center', gap: 5,
+                          fontFamily: "'Nunito', sans-serif",
                         }}
                       >
                         <Check size={13} />
@@ -157,11 +140,11 @@ export default function Reintegros() {
 
           {pendientes.length === 0 && (
             <div style={{
-              textAlign: 'center', padding: '36px', color: '#3a3a50',
-              background: '#0f0f1c', border: '1px solid rgba(255,255,255,0.07)',
+              textAlign: 'center', padding: '36px', color: '#555555',
+              background: '#161616', border: '1px solid #1F1F1F',
               borderRadius: 14, marginBottom: 28,
             }}>
-              <Clock size={24} style={{ margin: '0 auto 10px', display: 'block' }} />
+              <Clock size={24} style={{ margin: '0 auto 10px', display: 'block', color: '#444444' }} />
               No hay reintegros pendientes
             </div>
           )}
@@ -169,19 +152,16 @@ export default function Reintegros() {
           {/* Historial */}
           {pagados.length > 0 && (
             <div>
-              <div style={{ color: '#8a8a9a', fontSize: 12, fontWeight: 600, letterSpacing: '0.05em', marginBottom: 10 }}>
+              <div style={{ color: '#888888', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', marginBottom: 10 }}>
                 HISTORIAL DE PAGOS
               </div>
-              <div style={{
-                background: '#0f0f1c', border: '1px solid rgba(255,255,255,0.07)',
-                borderRadius: 14, overflow: 'hidden',
-              }}>
+              <div style={{ background: '#161616', border: '1px solid #1F1F1F', borderRadius: 14, overflow: 'hidden' }}>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                     <thead>
-                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                      <tr style={{ borderBottom: '1px solid #1F1F1F' }}>
                         {['Socio', 'Ciclo', 'Compras', 'Monto cobrado', 'Fecha cobro'].map(h => (
-                          <th key={h} style={{ padding: '11px 16px', color: '#3a3a50', fontWeight: 500, textAlign: 'left' }}>{h}</th>
+                          <th key={h} style={{ padding: '11px 16px', color: '#555555', fontWeight: 500, textAlign: 'left' }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -191,10 +171,10 @@ export default function Reintegros() {
                         return (
                           <tr key={ci.id} style={{ borderBottom: i < pagados.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                             <td style={{ padding: '12px 16px', fontWeight: 500 }}>{cliente?.nombre || '—'}</td>
-                            <td style={{ padding: '12px 16px', color: '#55556a' }}>#{ci.numero}</td>
-                            <td style={{ padding: '12px 16px', color: '#55556a' }}>{ci.compras_count}</td>
-                            <td style={{ padding: '12px 16px', fontFamily: 'Syne, sans-serif', fontWeight: 700, color: '#4ade80' }}>{fmt(ci.monto_retirado)}</td>
-                            <td style={{ padding: '12px 16px', color: '#8a8a9a' }}>{fmtDate(ci.fecha_retiro)}</td>
+                            <td style={{ padding: '12px 16px', color: '#888888' }}>#{ci.numero}</td>
+                            <td style={{ padding: '12px 16px', color: '#888888' }}>{ci.compras_count}</td>
+                            <td style={{ padding: '12px 16px', fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: '#16a34a' }}>{fmt(ci.monto_retirado)}</td>
+                            <td style={{ padding: '12px 16px', color: '#888888' }}>{fmtDate(ci.fecha_retiro)}</td>
                           </tr>
                         );
                       })}

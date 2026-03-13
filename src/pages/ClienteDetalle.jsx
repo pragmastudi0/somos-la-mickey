@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
-import {
-  ChevronLeft, ShoppingBag, Wallet, Plus, Check
-} from 'lucide-react';
+import { createPageUrl } from '@/utils';
+import { ChevronLeft, ShoppingBag, Wallet, Plus, Check } from 'lucide-react';
 import ProgressBar from '@/components/shared/ProgressBar';
 import MetodoPagoBadge from '@/components/shared/MetodoPagoBadge';
 import NuevaCompraModal from '@/components/admin/NuevaCompraModal';
@@ -23,15 +21,17 @@ export default function ClienteDetalle() {
   const [cliente, setCliente] = useState(null);
   const [compras, setCompras] = useState([]);
   const [ciclos, setCiclos] = useState([]);
+  const [config, setConfig] = useState({ umbral_compras: 15 });
   const [showCompraModal, setShowCompraModal] = useState(false);
   const [pagandoReintegro, setPagandoReintegro] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
-    const [clientes, allCompras, allCiclos] = await Promise.all([
+    const [clientes, allCompras, allCiclos, cfgs] = await Promise.all([
       base44.entities.Cliente.list(),
       base44.entities.Compra.list(),
       base44.entities.Ciclo.list(),
+      base44.entities.Configuracion.list(),
     ]);
     const c = clientes.find(cl => cl.id === clienteId);
     const mis = allCompras.filter(cp => cp.cliente_id === clienteId);
@@ -39,6 +39,7 @@ export default function ClienteDetalle() {
     setCliente(c);
     setCompras(mis.sort((a, b) => new Date(b.fecha || b.created_date) - new Date(a.fecha || a.created_date)));
     setCiclos(misCiclos.sort((a, b) => (b.numero || 0) - (a.numero || 0)));
+    if (cfgs && cfgs.length > 0) setConfig(cfgs[0]);
     setLoading(false);
   };
 
@@ -46,85 +47,89 @@ export default function ClienteDetalle() {
 
   const cicloActivo = ciclos.find(c => !c.retirado);
   const ciclosRetirados = ciclos.filter(c => c.retirado);
+  const umbral = config.umbral_compras || 15;
 
   const handlePagarReintegro = async () => {
     if (!cicloActivo) return;
     setPagandoReintegro(true);
     const today = new Date().toISOString().split('T')[0];
     await base44.entities.Ciclo.update(cicloActivo.id, {
-      retirado: true,
-      monto_retirado: cicloActivo.acum_reintegro,
-      fecha_retiro: today,
+      retirado: true, monto_retirado: cicloActivo.acum_reintegro, fecha_retiro: today,
     });
     await base44.entities.Ciclo.create({
-      cliente_id: clienteId,
-      numero: (cicloActivo.numero || 0) + 1,
-      acum_reintegro: 0,
-      compras_count: 0,
-      puede_retirar: false,
-      retirado: false,
+      cliente_id: clienteId, numero: (cicloActivo.numero || 0) + 1,
+      acum_reintegro: 0, compras_count: 0, puede_retirar: false, retirado: false,
     });
     setPagandoReintegro(false);
     load();
   };
 
-  if (loading) {
-    return <div style={{ color: '#3a3a50', textAlign: 'center', padding: 80 }}>Cargando...</div>;
-  }
-  if (!cliente) {
-    return <div style={{ color: '#3a3a50', textAlign: 'center', padding: 80 }}>Cliente no encontrado</div>;
-  }
+  if (loading) return <div style={{ color: '#444444', textAlign: 'center', padding: 80 }}>Cargando...</div>;
+  if (!cliente) return <div style={{ color: '#444444', textAlign: 'center', padding: 80 }}>Cliente no encontrado</div>;
 
   const totalCompras = compras.length;
   const totalGastado = compras.reduce((s, c) => s + (c.monto || 0), 0);
   const totalCobrado = ciclosRetirados.reduce((s, c) => s + (c.monto_retirado || 0), 0);
   const count = cicloActivo?.compras_count || 0;
 
+  const tieneCustom = cliente.porcentaje_efectivo_custom != null || cliente.porcentaje_tarjeta_custom != null;
+
   return (
-    <div style={{ padding: '28px', maxWidth: 860, margin: '0 auto' }}>
-      {/* Back */}
-      <Link
-        to={createPageUrl('Clientes')}
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: 5,
-          color: '#3a3a50', textDecoration: 'none', fontSize: 13,
-          marginBottom: 20,
-        }}
-      >
+    <div style={{ padding: '28px', maxWidth: 860, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
+      <Link to={createPageUrl('Clientes')} style={{
+        display: 'inline-flex', alignItems: 'center', gap: 5,
+        color: '#888888', textDecoration: 'none', fontSize: 13, marginBottom: 20,
+      }}>
         <ChevronLeft size={14} /> Volver a socios
       </Link>
 
       {/* Header */}
       <div style={{
-        background: '#0f0f1c', border: '1px solid rgba(255,255,255,0.07)',
+        background: '#161616', border: '1px solid #1F1F1F',
         borderRadius: 14, padding: '22px 24px', marginBottom: 16,
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{
-            width: 50, height: 50, borderRadius: 12, background: 'rgba(200,240,74,0.08)',
+            width: 50, height: 50, borderRadius: 12,
+            background: 'rgba(232,0,29,0.1)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 20, color: '#c8f04a',
+            fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 22, color: '#E8001D',
           }}>
             {cliente.nombre?.charAt(0).toUpperCase()}
           </div>
           <div>
-            <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: 20, letterSpacing: '-0.01em' }}>
+            <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 22, letterSpacing: '-0.01em' }}>
               {cliente.nombre}
             </div>
-            <div style={{ color: '#55556a', fontSize: 12, marginTop: 2 }}>
+            <div style={{ color: '#888888', fontSize: 12, marginTop: 2 }}>
               {cliente.email} {cliente.telefono && `· ${cliente.telefono}`} · Alta {fmtDate(cliente.fecha_alta)}
             </div>
+            {tieneCustom && (
+              <div style={{ marginTop: 5, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {cliente.porcentaje_efectivo_custom != null && (
+                  <span style={{ background: 'rgba(232,0,29,0.12)', color: '#E8001D', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99 }}>
+                    Efectivo {cliente.porcentaje_efectivo_custom}% personalizado
+                  </span>
+                )}
+                {cliente.porcentaje_tarjeta_custom != null && (
+                  <span style={{ background: 'rgba(249,209,0,0.12)', color: '#c8a000', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99 }}>
+                    Tarjeta {cliente.porcentaje_tarjeta_custom}% personalizado
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <div style={{ display: 'flex', gap: 9 }}>
           <button
             onClick={() => setShowCompraModal(true)}
             style={{
-              background: '#0f0f1c', color: '#f0f0f8',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 8, padding: '9px 14px', cursor: 'pointer',
-              fontSize: 13, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6,
+              background: 'transparent', color: '#FFFFFF',
+              border: '2px solid #E8001D',
+              borderRadius: 99, padding: '9px 16px', cursor: 'pointer',
+              fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6,
+              fontFamily: "'Nunito', sans-serif",
             }}
           >
             <Plus size={13} /> Nueva compra
@@ -134,11 +139,12 @@ export default function ClienteDetalle() {
               onClick={handlePagarReintegro}
               disabled={pagandoReintegro}
               style={{
-                background: '#c8f04a', color: '#07070f',
-                border: 'none', borderRadius: 8, padding: '9px 14px',
+                background: '#E8001D', color: '#FFFFFF',
+                border: 'none', borderRadius: 99, padding: '9px 16px',
                 cursor: pagandoReintegro ? 'not-allowed' : 'pointer',
-                fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+                fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6,
                 opacity: pagandoReintegro ? 0.6 : 1,
+                fontFamily: "'Nunito', sans-serif",
               }}
             >
               <Check size={13} /> {pagandoReintegro ? 'Procesando...' : `Pagar ${fmt(cicloActivo.acum_reintegro)}`}
@@ -148,24 +154,21 @@ export default function ClienteDetalle() {
       </div>
 
       {/* Métricas */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-        gap: 10, marginBottom: 16,
-      }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10, marginBottom: 16 }}>
         {[
-          { label: 'Reintegro acumulado', value: fmt(cicloActivo?.acum_reintegro || 0), accent: true },
+          { label: 'Reintegro acumulado', value: fmt(cicloActivo?.acum_reintegro || 0), accent: '#F9D100' },
           { label: 'Total compras', value: totalCompras },
           { label: 'Total gastado', value: fmt(totalGastado) },
           { label: 'Total reintegros cobrados', value: fmt(totalCobrado) },
         ].map((m, i) => (
           <div key={i} style={{
-            background: '#0f0f1c', border: '1px solid rgba(255,255,255,0.07)',
+            background: '#161616', border: '1px solid #1F1F1F',
             borderRadius: 12, padding: '14px 16px',
           }}>
-            <div style={{ color: '#55556a', fontSize: 11, marginBottom: 6 }}>{m.label}</div>
+            <div style={{ color: '#888888', fontSize: 11, marginBottom: 6 }}>{m.label}</div>
             <div style={{
-              fontFamily: 'Syne, sans-serif', fontWeight: 800,
-              fontSize: 22, color: m.accent ? '#c8f04a' : '#f0f0f8', letterSpacing: '-0.01em',
+              fontFamily: "'Nunito', sans-serif", fontWeight: 900,
+              fontSize: 22, color: m.accent || '#FFFFFF', letterSpacing: '-0.01em',
             }}>
               {m.value}
             </div>
@@ -175,20 +178,20 @@ export default function ClienteDetalle() {
 
       {/* Progreso */}
       <div style={{
-        background: '#0f0f1c', border: '1px solid rgba(255,255,255,0.07)',
+        background: '#161616', border: '1px solid #1F1F1F',
         borderRadius: 12, padding: '16px 18px', marginBottom: 16,
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <span style={{ fontSize: 13, color: '#8a8a9a' }}>
+          <span style={{ fontSize: 13, color: '#888888' }}>
             Ciclo #{cicloActivo?.numero || 1} — progreso
           </span>
-          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, color: count >= 15 ? '#c8f04a' : '#f0f0f8' }}>
-            {count}/15
+          <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: count >= umbral ? '#F9D100' : '#FFFFFF' }}>
+            {count}/{umbral}
           </span>
         </div>
-        <ProgressBar value={count} max={15} height={8} />
+        <ProgressBar value={count} max={umbral} height={8} />
         {cicloActivo?.puede_retirar && (
-          <div style={{ marginTop: 10, color: '#c8f04a', fontSize: 12, fontWeight: 500 }}>
+          <div style={{ marginTop: 10, color: '#E8001D', fontSize: 12, fontWeight: 600 }}>
             ✓ ¡Puede retirar el reintegro!
           </div>
         )}
@@ -196,35 +199,38 @@ export default function ClienteDetalle() {
 
       {/* Historial compras */}
       <div style={{
-        background: '#0f0f1c', border: '1px solid rgba(255,255,255,0.07)',
+        background: '#161616', border: '1px solid #1F1F1F',
         borderRadius: 14, overflow: 'hidden', marginBottom: 16,
       }}>
-        <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-          <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 600, fontSize: 14 }}>
-            <ShoppingBag size={13} style={{ verticalAlign: 'middle', marginRight: 7, color: '#3a3a50' }} />
+        <div style={{ padding: '14px 18px', borderBottom: '1px solid #1F1F1F' }}>
+          <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 14 }}>
+            <ShoppingBag size={13} style={{ verticalAlign: 'middle', marginRight: 7, color: '#555555' }} />
             Historial de compras
           </span>
         </div>
         {compras.length === 0 ? (
-          <div style={{ padding: '24px', color: '#3a3a50', fontSize: 13, textAlign: 'center' }}>Sin compras registradas</div>
+          <div style={{ padding: '24px', color: '#444444', fontSize: 13, textAlign: 'center' }}>Sin compras registradas</div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                  {['Fecha', 'Monto', 'Método', 'Reintegro', 'Ciclo'].map(h => (
-                    <th key={h} style={{ padding: '10px 16px', color: '#3a3a50', fontWeight: 500, textAlign: 'left' }}>{h}</th>
+                <tr style={{ borderBottom: '1px solid #1F1F1F' }}>
+                  {['Fecha', 'Monto', 'Método', '% Aplicado', 'Reintegro', 'Ciclo'].map(h => (
+                    <th key={h} style={{ padding: '10px 16px', color: '#555555', fontWeight: 500, textAlign: 'left' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {compras.map((cp, i) => (
                   <tr key={cp.id} style={{ borderBottom: i < compras.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                    <td style={{ padding: '11px 16px', color: '#8a8a9a' }}>{fmtDate(cp.fecha)}</td>
-                    <td style={{ padding: '11px 16px', fontFamily: 'Syne, sans-serif', fontWeight: 700 }}>{fmt(cp.monto)}</td>
+                    <td style={{ padding: '11px 16px', color: '#888888' }}>{fmtDate(cp.fecha)}</td>
+                    <td style={{ padding: '11px 16px', fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>{fmt(cp.monto)}</td>
                     <td style={{ padding: '11px 16px' }}><MetodoPagoBadge metodo={cp.metodo_pago} /></td>
-                    <td style={{ padding: '11px 16px', color: '#c8f04a', fontFamily: 'Syne, sans-serif', fontWeight: 700 }}>{fmt(cp.reintegro_generado)}</td>
-                    <td style={{ padding: '11px 16px', color: '#55556a' }}>#{cp.ciclo_numero || 1}</td>
+                    <td style={{ padding: '11px 16px', color: '#888888' }}>
+                      {cp.porcentaje_aplicado != null ? `${cp.porcentaje_aplicado}%` : '-'}
+                    </td>
+                    <td style={{ padding: '11px 16px', color: '#F9D100', fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>{fmt(cp.reintegro_generado)}</td>
+                    <td style={{ padding: '11px 16px', color: '#555555' }}>#{cp.ciclo_numero || 1}</td>
                   </tr>
                 ))}
               </tbody>
@@ -236,12 +242,12 @@ export default function ClienteDetalle() {
       {/* Reintegros cobrados */}
       {ciclosRetirados.length > 0 && (
         <div style={{
-          background: '#0f0f1c', border: '1px solid rgba(255,255,255,0.07)',
+          background: '#161616', border: '1px solid #1F1F1F',
           borderRadius: 14, overflow: 'hidden',
         }}>
-          <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-            <span style={{ fontFamily: 'Syne, sans-serif', fontWeight: 600, fontSize: 14 }}>
-              <Wallet size={13} style={{ verticalAlign: 'middle', marginRight: 7, color: '#3a3a50' }} />
+          <div style={{ padding: '14px 18px', borderBottom: '1px solid #1F1F1F' }}>
+            <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 14 }}>
+              <Wallet size={13} style={{ verticalAlign: 'middle', marginRight: 7, color: '#555555' }} />
               Reintegros cobrados
             </span>
           </div>
@@ -252,9 +258,9 @@ export default function ClienteDetalle() {
             }}>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 500 }}>Ciclo #{ci.numero}</div>
-                <div style={{ fontSize: 11, color: '#3a3a50', marginTop: 1 }}>{fmtDate(ci.fecha_retiro)}</div>
+                <div style={{ fontSize: 11, color: '#555555', marginTop: 1 }}>{fmtDate(ci.fecha_retiro)} · {ci.compras_count} compras</div>
               </div>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, color: '#4ade80', fontSize: 16 }}>
+              <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: '#16a34a', fontSize: 16 }}>
                 {fmt(ci.monto_retirado)}
               </div>
             </div>

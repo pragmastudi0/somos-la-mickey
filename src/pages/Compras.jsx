@@ -35,23 +35,23 @@ export default function Compras() {
   const filtered = filtro === 'todos' ? compras : compras.filter(c => c.metodo_pago === filtro);
 
   return (
-    <div style={{ padding: '32px 28px', maxWidth: 1000, margin: '0 auto' }}>
+    <div style={{ padding: '32px 28px', maxWidth: 1000, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24 }}>
         <div>
-          <h1 style={{
-            fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 24,
-            color: '#f0f0f8', margin: 0, letterSpacing: '-0.02em',
-          }}>Compras</h1>
-          <p style={{ color: '#3a3a50', fontSize: 13, margin: '4px 0 0' }}>
+          <h1 style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 26, color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em' }}>
+            Compras
+          </h1>
+          <p style={{ color: '#888888', fontSize: 13, margin: '4px 0 0' }}>
             {compras.length} compras registradas
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
           style={{
-            background: '#c8f04a', color: '#07070f', border: 'none',
-            borderRadius: 9, padding: '10px 16px', cursor: 'pointer',
-            fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6,
+            background: '#E8001D', color: '#FFFFFF', border: 'none',
+            borderRadius: 99, padding: '10px 18px', cursor: 'pointer',
+            fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6,
+            fontFamily: "'Nunito', sans-serif",
           }}
         >
           <Plus size={14} /> Nueva compra
@@ -65,11 +65,11 @@ export default function Compras() {
             key={m}
             onClick={() => setFiltro(m)}
             style={{
-              padding: '7px 14px', borderRadius: 8,
-              border: filtro === m ? '1px solid rgba(200,240,74,0.3)' : '1px solid rgba(255,255,255,0.06)',
-              background: filtro === m ? 'rgba(200,240,74,0.08)' : '#0f0f1c',
-              color: filtro === m ? '#c8f04a' : '#6a6a80',
-              cursor: 'pointer', fontSize: 12, fontWeight: 500,
+              padding: '7px 14px', borderRadius: 99,
+              border: filtro === m ? '1px solid rgba(232,0,29,0.4)' : '1px solid #1F1F1F',
+              background: filtro === m ? 'rgba(232,0,29,0.1)' : '#161616',
+              color: filtro === m ? '#E8001D' : '#888888',
+              cursor: 'pointer', fontSize: 12, fontWeight: 600,
               fontFamily: "'DM Sans', sans-serif",
             }}
           >
@@ -79,21 +79,15 @@ export default function Compras() {
       </div>
 
       {loading ? (
-        <div style={{ color: '#3a3a50', textAlign: 'center', padding: 60 }}>Cargando...</div>
+        <div style={{ color: '#444444', textAlign: 'center', padding: 60 }}>Cargando...</div>
       ) : (
-        <div style={{
-          background: '#0f0f1c', border: '1px solid rgba(255,255,255,0.07)',
-          borderRadius: 14, overflow: 'hidden',
-        }}>
+        <div style={{ background: '#161616', border: '1px solid #1F1F1F', borderRadius: 14, overflow: 'hidden' }}>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                  {['Fecha', 'Socio', 'Monto', 'Método', 'Reintegro generado', 'Ciclo'].map(h => (
-                    <th key={h} style={{
-                      padding: '12px 16px', color: '#3a3a50',
-                      fontWeight: 500, textAlign: 'left',
-                    }}>{h}</th>
+                <tr style={{ borderBottom: '1px solid #1F1F1F' }}>
+                  {['Fecha', 'Socio', 'Monto', 'Método', '% Aplicado', 'Reintegro', 'Ciclo'].map(h => (
+                    <th key={h} style={{ padding: '12px 16px', color: '#555555', fontWeight: 500, textAlign: 'left' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -102,18 +96,21 @@ export default function Compras() {
                   const cliente = clientes.find(c => c.id === cp.cliente_id);
                   return (
                     <tr key={cp.id} style={{ borderBottom: i < filtered.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                      <td style={{ padding: '13px 16px', color: '#8a8a9a' }}>{fmtDate(cp.fecha)}</td>
+                      <td style={{ padding: '13px 16px', color: '#888888' }}>{fmtDate(cp.fecha)}</td>
                       <td style={{ padding: '13px 16px', fontWeight: 500 }}>{cliente?.nombre || '—'}</td>
-                      <td style={{ padding: '13px 16px', fontFamily: 'Syne, sans-serif', fontWeight: 700 }}>{fmt(cp.monto)}</td>
+                      <td style={{ padding: '13px 16px', fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>{fmt(cp.monto)}</td>
                       <td style={{ padding: '13px 16px' }}><MetodoPagoBadge metodo={cp.metodo_pago} /></td>
-                      <td style={{ padding: '13px 16px', color: '#c8f04a', fontFamily: 'Syne, sans-serif', fontWeight: 700 }}>{fmt(cp.reintegro_generado)}</td>
-                      <td style={{ padding: '13px 16px', color: '#55556a' }}>#{cp.ciclo_numero || 1}</td>
+                      <td style={{ padding: '13px 16px', color: '#888888' }}>
+                        {cp.porcentaje_aplicado != null ? `${cp.porcentaje_aplicado}%` : '-'}
+                      </td>
+                      <td style={{ padding: '13px 16px', color: '#F9D100', fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>{fmt(cp.reintegro_generado)}</td>
+                      <td style={{ padding: '13px 16px', color: '#555555' }}>#{cp.ciclo_numero || 1}</td>
                     </tr>
                   );
                 })}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={6} style={{ padding: '36px', textAlign: 'center', color: '#3a3a50' }}>
+                    <td colSpan={7} style={{ padding: '36px', textAlign: 'center', color: '#444444' }}>
                       No hay compras para este filtro
                     </td>
                   </tr>
