@@ -1,21 +1,21 @@
 import React from 'react';
 
-export default function ProgressBar({ value = 0, max = 15, height = 7 }) {
-  const pct = Math.min(Math.max((value / max) * 100, 0), 100);
+export default function ProgressBar({ value = 0, max = 15, height = 6, light = false }) {
+  const pct = Math.min(100, Math.round((Math.max(0, value) / Math.max(1, max)) * 100));
   return (
     <div style={{
-      background: 'rgba(255,255,255,0.07)',
-      borderRadius: 999, height,
+      background: light ? '#E8E8E8' : '#1F1F1F',
+      borderRadius: 999,
+      height: height,
       overflow: 'hidden',
     }}>
       <div style={{
         height: '100%',
         width: `${pct}%`,
-        background: pct >= 100
-          ? '#c8f04a'
-          : 'linear-gradient(90deg, rgba(200,240,74,0.35) 0%, #c8f04a 100%)',
         borderRadius: 999,
-        transition: 'width 0.5s cubic-bezier(0.4,0,0.2,1)',
+        background: 'linear-gradient(90deg, #E8001D 0%, #F9D100 100%)',
+        transition: 'width 0.4s ease',
+        minWidth: pct > 0 ? 4 : 0,
       }} />
     </div>
   );

@@ -1,9 +1,9 @@
 import React from 'react';
 
 const ESTILOS = {
-  efectivo:      { label: 'Efectivo',       bg: 'rgba(74,222,128,0.1)',  color: '#4ade80' },
-  tarjeta:       { label: 'Tarjeta',        bg: 'rgba(96,165,250,0.1)',  color: '#60a5fa' },
-  transferencia: { label: 'Transferencia',  bg: 'rgba(167,139,250,0.1)', color: '#a78bfa' },
+  efectivo:      { label: 'Efectivo',       bg: 'rgba(22,163,74,0.12)',  color: '#16a34a' },
+  tarjeta:       { label: 'Tarjeta',        bg: 'rgba(37,99,235,0.12)',  color: '#2563eb' },
+  transferencia: { label: 'Transferencia',  bg: 'rgba(124,58,237,0.12)', color: '#7c3aed' },
 };
 
 export default function MetodoPagoBadge({ metodo }) {
@@ -13,8 +13,9 @@ export default function MetodoPagoBadge({ metodo }) {
       display: 'inline-flex', alignItems: 'center',
       padding: '3px 10px', borderRadius: 999,
       background: s.bg, color: s.color,
-      fontSize: 11, fontWeight: 500,
+      fontSize: 11, fontWeight: 600,
       whiteSpace: 'nowrap',
+      fontFamily: "'DM Sans', sans-serif",
     }}>
       {s.label}
     </span>
