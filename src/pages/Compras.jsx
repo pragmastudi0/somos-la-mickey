@@ -79,7 +79,7 @@ export default function Compras() {
       </div>
 
       {loading ? (
-        <div style={{ color: '#444444', textAlign: 'center', padding: 60 }}>Cargando...</div>
+        <div style={{ color: '#888888', textAlign: 'center', padding: 60 }}>Cargando...</div>
       ) : (
         <div style={{ background: '#161616', border: '1px solid #1F1F1F', borderRadius: 14, overflow: 'hidden' }}>
           <div style={{ overflowX: 'auto' }}>
@@ -97,8 +97,8 @@ export default function Compras() {
                   return (
                     <tr key={cp.id} style={{ borderBottom: i < filtered.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                       <td style={{ padding: '13px 16px', color: '#888888' }}>{fmtDate(cp.fecha)}</td>
-                      <td style={{ padding: '13px 16px', fontWeight: 500 }}>{cliente?.nombre || '—'}</td>
-                      <td style={{ padding: '13px 16px', fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>{fmt(cp.monto)}</td>
+                      <td style={{ padding: '13px 16px', fontWeight: 500, color: '#FFFFFF' }}>{cliente?.nombre || '—'}</td>
+                      <td style={{ padding: '13px 16px', fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: '#FFFFFF' }}>{fmt(cp.monto)}</td>
                       <td style={{ padding: '13px 16px' }}><MetodoPagoBadge metodo={cp.metodo_pago} /></td>
                       <td style={{ padding: '13px 16px', color: '#888888' }}>
                         {cp.porcentaje_aplicado != null ? `${cp.porcentaje_aplicado}%` : '-'}
@@ -110,7 +110,7 @@ export default function Compras() {
                 })}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={7} style={{ padding: '36px', textAlign: 'center', color: '#444444' }}>
+                    <td colSpan={7} style={{ padding: '36px', textAlign: 'center', color: '#888888' }}>
                       No hay compras para este filtro
                     </td>
                   </tr>

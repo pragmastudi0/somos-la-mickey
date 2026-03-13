@@ -100,7 +100,7 @@ export default function Dashboard() {
       </div>
 
       {loading ? (
-        <div style={{ color: '#444444', textAlign: 'center', padding: 60 }}>Cargando...</div>
+        <div style={{ color: '#888888', textAlign: 'center', padding: 60 }}>Cargando...</div>
       ) : (
         <>
           {/* Stats */}

@@ -80,7 +80,7 @@ export default function Reintegros() {
       )}
 
       {loading ? (
-        <div style={{ color: '#444444', textAlign: 'center', padding: 60 }}>Cargando...</div>
+        <div style={{ color: '#888888', textAlign: 'center', padding: 60 }}>Cargando...</div>
       ) : (
         <>
           {/* Pendientes */}
@@ -107,7 +107,7 @@ export default function Reintegros() {
                         {cliente?.nombre?.charAt(0).toUpperCase()}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 600, fontSize: 14 }}>{cliente?.nombre}</div>
+                        <div style={{ fontWeight: 600, fontSize: 14, color: '#FFFFFF' }}>{cliente?.nombre}</div>
                         <div style={{ color: '#555555', fontSize: 11, marginTop: 2 }}>
                           Ciclo #{ciclo.numero} · {ciclo.compras_count} compras
                         </div>
@@ -144,7 +144,7 @@ export default function Reintegros() {
               background: '#161616', border: '1px solid #1F1F1F',
               borderRadius: 14, marginBottom: 28,
             }}>
-              <Clock size={24} style={{ margin: '0 auto 10px', display: 'block', color: '#444444' }} />
+              <Clock size={24} style={{ margin: '0 auto 10px', display: 'block', color: '#555555' }} />
               No hay reintegros pendientes
             </div>
           )}
@@ -170,7 +170,7 @@ export default function Reintegros() {
                         const cliente = clientes.find(c => c.id === ci.cliente_id);
                         return (
                           <tr key={ci.id} style={{ borderBottom: i < pagados.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                            <td style={{ padding: '12px 16px', fontWeight: 500 }}>{cliente?.nombre || '—'}</td>
+                            <td style={{ padding: '12px 16px', fontWeight: 500, color: '#FFFFFF' }}>{cliente?.nombre || '—'}</td>
                             <td style={{ padding: '12px 16px', color: '#888888' }}>#{ci.numero}</td>
                             <td style={{ padding: '12px 16px', color: '#888888' }}>{ci.compras_count}</td>
                             <td style={{ padding: '12px 16px', fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: '#16a34a' }}>{fmt(ci.monto_retirado)}</td>

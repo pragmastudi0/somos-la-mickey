@@ -88,7 +88,7 @@ export default function Clientes() {
       </div>
 
       {loading ? (
-        <div style={{ color: '#444444', textAlign: 'center', padding: 60 }}>Cargando...</div>
+        <div style={{ color: '#888888', textAlign: 'center', padding: 60 }}>Cargando...</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {filtered.map(cliente => {
@@ -160,13 +160,13 @@ export default function Clientes() {
                   </div>
                 </div>
 
-                <ChevronRight size={14} style={{ color: '#444444', flexShrink: 0 }} />
+                <ChevronRight size={14} style={{ color: '#888888', flexShrink: 0 }} />
               </Link>
             );
           })}
 
           {filtered.length === 0 && (
-            <div style={{ color: '#444444', textAlign: 'center', padding: 60, fontSize: 14 }}>
+            <div style={{ color: '#888888', textAlign: 'center', padding: 60, fontSize: 14 }}>
               No se encontraron socios
             </div>
           )}

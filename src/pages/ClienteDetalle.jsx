@@ -64,8 +64,8 @@ export default function ClienteDetalle() {
     load();
   };
 
-  if (loading) return <div style={{ color: '#444444', textAlign: 'center', padding: 80 }}>Cargando...</div>;
-  if (!cliente) return <div style={{ color: '#444444', textAlign: 'center', padding: 80 }}>Cliente no encontrado</div>;
+  if (loading) return <div style={{ color: '#888888', textAlign: 'center', padding: 80 }}>Cargando...</div>;
+  if (!cliente) return <div style={{ color: '#888888', textAlign: 'center', padding: 80 }}>Cliente no encontrado</div>;
 
   const totalCompras = compras.length;
   const totalGastado = compras.reduce((s, c) => s + (c.monto || 0), 0);
@@ -99,7 +99,7 @@ export default function ClienteDetalle() {
             {cliente.nombre?.charAt(0).toUpperCase()}
           </div>
           <div>
-            <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 22, letterSpacing: '-0.01em' }}>
+            <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 22, letterSpacing: '-0.01em', color: '#FFFFFF' }}>
               {cliente.nombre}
             </div>
             <div style={{ color: '#888888', fontSize: 12, marginTop: 2 }}>
@@ -203,13 +203,13 @@ export default function ClienteDetalle() {
         borderRadius: 14, overflow: 'hidden', marginBottom: 16,
       }}>
         <div style={{ padding: '14px 18px', borderBottom: '1px solid #1F1F1F' }}>
-          <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 14 }}>
+          <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 14, color: '#FFFFFF' }}>
             <ShoppingBag size={13} style={{ verticalAlign: 'middle', marginRight: 7, color: '#555555' }} />
             Historial de compras
           </span>
         </div>
         {compras.length === 0 ? (
-          <div style={{ padding: '24px', color: '#444444', fontSize: 13, textAlign: 'center' }}>Sin compras registradas</div>
+          <div style={{ padding: '24px', color: '#888888', fontSize: 13, textAlign: 'center' }}>Sin compras registradas</div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -224,7 +224,7 @@ export default function ClienteDetalle() {
                 {compras.map((cp, i) => (
                   <tr key={cp.id} style={{ borderBottom: i < compras.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                     <td style={{ padding: '11px 16px', color: '#888888' }}>{fmtDate(cp.fecha)}</td>
-                    <td style={{ padding: '11px 16px', fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>{fmt(cp.monto)}</td>
+                    <td style={{ padding: '11px 16px', fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: '#FFFFFF' }}>{fmt(cp.monto)}</td>
                     <td style={{ padding: '11px 16px' }}><MetodoPagoBadge metodo={cp.metodo_pago} /></td>
                     <td style={{ padding: '11px 16px', color: '#888888' }}>
                       {cp.porcentaje_aplicado != null ? `${cp.porcentaje_aplicado}%` : '-'}
@@ -246,9 +246,9 @@ export default function ClienteDetalle() {
           borderRadius: 14, overflow: 'hidden',
         }}>
           <div style={{ padding: '14px 18px', borderBottom: '1px solid #1F1F1F' }}>
-            <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 14 }}>
-              <Wallet size={13} style={{ verticalAlign: 'middle', marginRight: 7, color: '#555555' }} />
-              Reintegros cobrados
+            <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 14, color: '#FFFFFF' }}>
+                <Wallet size={13} style={{ verticalAlign: 'middle', marginRight: 7, color: '#555555' }} />
+                Reintegros cobrados
             </span>
           </div>
           {ciclosRetirados.map((ci, i) => (
@@ -257,7 +257,7 @@ export default function ClienteDetalle() {
               borderBottom: i < ciclosRetirados.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
             }}>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 500 }}>Ciclo #{ci.numero}</div>
+                <div style={{ fontSize: 13, fontWeight: 500, color: '#FFFFFF' }}>Ciclo #{ci.numero}</div>
                 <div style={{ fontSize: 11, color: '#555555', marginTop: 1 }}>{fmtDate(ci.fecha_retiro)} · {ci.compras_count} compras</div>
               </div>
               <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: '#16a34a', fontSize: 16 }}>
