@@ -2,47 +2,50 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
-  LayoutDashboard, Users, ShoppingBag, Wallet, Tag, LogOut, Sparkles
+  LayoutDashboard, Users, ShoppingBag, Wallet, Tag, LogOut, Settings
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const navItems = [
-  { name: 'Dashboard', page: 'Dashboard', icon: LayoutDashboard },
-  { name: 'Socios', page: 'Clientes', icon: Users },
-  { name: 'Compras', page: 'Compras', icon: ShoppingBag },
-  { name: 'Reintegros', page: 'Reintegros', icon: Wallet },
+  { name: 'Dashboard',   page: 'Dashboard',   icon: LayoutDashboard },
+  { name: 'Socios',      page: 'Clientes',    icon: Users },
+  { name: 'Compras',     page: 'Compras',     icon: ShoppingBag },
+  { name: 'Reintegros',  page: 'Reintegros',  icon: Wallet },
   { name: 'Promociones', page: 'Promociones', icon: Tag },
+  { name: 'Ajustes',     page: 'Ajustes',     icon: Settings },
 ];
 
 export default function AdminSidebar({ currentPage, user }) {
   return (
     <nav style={{
-      width: 220,
-      minWidth: 220,
-      background: '#0a0a15',
-      borderRight: '1px solid rgba(255,255,255,0.06)',
-      display: 'flex',
-      flexDirection: 'column',
+      width: 220, minWidth: 220,
+      background: '#161616',
+      borderRight: '1px solid #1F1F1F',
+      display: 'flex', flexDirection: 'column',
       padding: '24px 12px',
-      position: 'sticky',
-      top: 0,
-      height: '100vh',
+      position: 'sticky', top: 0, height: '100vh',
     }}>
+      {/* Logo */}
       <div style={{ padding: '6px 12px', marginBottom: 32 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
-          <Sparkles size={16} style={{ color: '#c8f04a' }} />
-          <span style={{
-            color: '#c8f04a',
-            fontFamily: 'Syne, sans-serif',
-            fontWeight: 700, fontSize: 15,
-            letterSpacing: '-0.01em',
-          }}>
-            La Mickey
-          </span>
+        <div style={{
+          fontFamily: "'Nunito', sans-serif",
+          fontWeight: 900, fontSize: 16,
+          color: '#E8001D',
+          letterSpacing: '-0.01em',
+          lineHeight: 1.1,
+        }}>
+          Somos la Mickey
         </div>
-        <div style={{ color: '#3a3a50', fontSize: 11, paddingLeft: 23 }}>Pragma Socios</div>
+        <div style={{
+          color: '#888888', fontSize: 10, marginTop: 2,
+          fontFamily: "'DM Sans', sans-serif",
+          letterSpacing: '0.08em', textTransform: 'uppercase',
+        }}>
+          App Socios
+        </div>
       </div>
 
+      {/* Nav items */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
         {navItems.map(item => {
           const Icon = item.icon;
@@ -55,10 +58,12 @@ export default function AdminSidebar({ currentPage, user }) {
                 display: 'flex', alignItems: 'center', gap: 10,
                 padding: '9px 13px', borderRadius: 9,
                 textDecoration: 'none',
-                color: isActive ? '#07070f' : '#6a6a80',
-                background: isActive ? '#c8f04a' : 'transparent',
+                color: isActive ? '#F9D100' : '#888888',
+                background: isActive ? 'rgba(249,209,0,0.08)' : 'transparent',
+                borderLeft: isActive ? '3px solid #F9D100' : '3px solid transparent',
                 fontWeight: isActive ? 600 : 400,
                 fontSize: 14,
+                fontFamily: "'DM Sans', sans-serif",
                 transition: 'all 0.12s ease',
               }}
             >
@@ -69,11 +74,13 @@ export default function AdminSidebar({ currentPage, user }) {
         })}
       </div>
 
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 12 }}>
+      {/* User + logout */}
+      <div style={{ borderTop: '1px solid #1F1F1F', paddingTop: 12 }}>
         <div style={{
-          color: '#3a3a50', fontSize: 11,
+          color: '#555555', fontSize: 11,
           padding: '0 13px', marginBottom: 8,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          fontFamily: "'DM Sans', sans-serif",
         }}>
           {user?.full_name || user?.email}
         </div>
@@ -82,10 +89,10 @@ export default function AdminSidebar({ currentPage, user }) {
           style={{
             display: 'flex', alignItems: 'center', gap: 10,
             padding: '9px 13px', borderRadius: 9,
-            color: '#6a6a80', background: 'transparent',
+            color: '#888888', background: 'transparent',
             border: 'none', cursor: 'pointer',
             fontSize: 14, width: '100%',
-            transition: 'color 0.12s',
+            fontFamily: "'DM Sans', sans-serif",
           }}
         >
           <LogOut size={15} />
