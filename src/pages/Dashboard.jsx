@@ -140,8 +140,8 @@ export default function Dashboard() {
                 padding: '16px 20px', borderBottom: '1px solid #1F1F1F',
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               }}>
-                <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 14 }}>
-                  Reintegros a pagar
+                <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 14, color: '#FFFFFF' }}>
+                 Reintegros a pagar
                 </span>
                 <Link to={createPageUrl('Reintegros')} style={{ color: '#E8001D', fontSize: 11, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3 }}>
                   Ver todos <ArrowRight size={11} />
@@ -197,7 +197,7 @@ export default function Dashboard() {
                 padding: '16px 20px', borderBottom: '1px solid #1F1F1F',
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               }}>
-                <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 14 }}>
+                <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 14, color: '#FFFFFF' }}>
                   Últimas compras
                 </span>
                 <Link to={createPageUrl('Compras')} style={{ color: '#E8001D', fontSize: 11, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 3 }}>
