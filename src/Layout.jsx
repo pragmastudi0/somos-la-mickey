@@ -28,13 +28,13 @@ export default function Layout({ children, currentPageName }) {
   if (loading) {
     return (
       <div style={{
-        background: '#07070f', minHeight: '100vh',
+        background: '#1A1A1A', minHeight: '100vh',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <div style={{
           width: 32, height: 32,
-          border: '3px solid rgba(200,240,74,0.15)',
-          borderTop: '3px solid #c8f04a',
+          border: '3px solid rgba(232,0,29,0.15)',
+          borderTop: '3px solid #E8001D',
           borderRadius: '50%',
           animation: 'spin 0.7s linear infinite',
         }} />
@@ -51,7 +51,7 @@ export default function Layout({ children, currentPageName }) {
   if (isAdmin) {
     return (
       <div style={{
-        background: '#07070f', minHeight: '100vh',
+        background: '#1A1A1A', minHeight: '100vh',
         display: 'flex', fontFamily: "'DM Sans', sans-serif",
       }}>
         <AdminSidebar currentPage={currentPageName} user={user} />
@@ -64,7 +64,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div style={{
-      background: '#07070f', minHeight: '100vh',
+      background: '#FFFFFF', minHeight: '100vh',
       fontFamily: "'DM Sans', sans-serif",
     }}>
       {children}
