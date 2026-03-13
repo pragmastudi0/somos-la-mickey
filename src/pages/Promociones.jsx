@@ -56,7 +56,7 @@ function NuevaPromoModal({ onClose, onSuccess }) {
         color: '#FFFFFF', fontFamily: "'DM Sans', sans-serif",
       }} onClick={e => e.stopPropagation()}>
         <div style={{ padding: '20px 24px', borderBottom: '1px solid #1F1F1F' }}>
-          <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 17 }}>
+          <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 17, color: '#FFFFFF' }}>
             Nueva promoción
           </span>
         </div>
@@ -172,7 +172,7 @@ export default function Promociones() {
       </div>
 
       {loading ? (
-        <div style={{ color: '#444444', textAlign: 'center', padding: 60 }}>Cargando...</div>
+        <div style={{ color: '#888888', textAlign: 'center', padding: 60 }}>Cargando...</div>
       ) : (
         <>
           {activas.length > 0 && (
@@ -205,13 +205,13 @@ export default function Promociones() {
                           <Pause size={11} />
                         </button>
                       </div>
-                      <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 15, marginBottom: 6, lineHeight: 1.3 }}>
+                      <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 15, marginBottom: 6, lineHeight: 1.3, color: '#FFFFFF' }}>
                         {promo.titulo}
                       </div>
                       <div style={{ color: '#888888', fontSize: 12, lineHeight: 1.5, marginBottom: 10 }}>
                         {promo.descripcion}
                       </div>
-                      <div style={{ color: '#444444', fontSize: 10 }}>Desde {fmtDate(promo.fecha_inicio)}</div>
+                      <div style={{ color: '#888888', fontSize: 10 }}>Desde {fmtDate(promo.fecha_inicio)}</div>
                     </div>
                   );
                 })}
@@ -256,7 +256,7 @@ export default function Promociones() {
                           </button>
                         </div>
                       </div>
-                      <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 15, marginBottom: 6 }}>
+                      <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 15, marginBottom: 6, color: '#FFFFFF' }}>
                         {promo.titulo}
                       </div>
                       <div style={{ color: '#888888', fontSize: 12, lineHeight: 1.5 }}>{promo.descripcion}</div>
@@ -268,7 +268,7 @@ export default function Promociones() {
           )}
 
           {promos.length === 0 && (
-            <div style={{ textAlign: 'center', color: '#444444', padding: 60 }}>No hay promociones todavía</div>
+            <div style={{ textAlign: 'center', color: '#888888', padding: 60 }}>No hay promociones todavía</div>
           )}
         </>
       )}
