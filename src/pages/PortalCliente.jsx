@@ -104,7 +104,7 @@ export default function PortalCliente() {
 
   return (
     <div style={{
-      background: '#F9FAFB', minHeight: '100vh',
+      background: '#FFD94D', minHeight: '100vh',
       fontFamily: "'DM Sans', sans-serif",
       color: '#1A1A1A',
       paddingBottom: 40
