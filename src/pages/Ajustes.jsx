@@ -205,7 +205,7 @@ export default function Ajustes() {
                       />
                     ) : (
                       <>
-                        <td style={{ padding: '11px 12px', fontWeight: 500, color: '#FFFFFF' }}>{cl.nombre}</td>
+                        <td style={{ padding: '11px 12px', fontWeight: 500 }}>{cl.nombre}</td>
                         <td style={{ padding: '11px 12px' }}>
                           <span style={{ background: 'rgba(232,0,29,0.1)', color: '#E8001D', padding: '2px 8px', borderRadius: 99, fontSize: 12, fontWeight: 700 }}>
                             {cl.porcentaje_efectivo_custom != null ? `${cl.porcentaje_efectivo_custom}%` : '—'}
