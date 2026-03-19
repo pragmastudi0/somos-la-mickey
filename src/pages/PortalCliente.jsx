@@ -54,7 +54,7 @@ export default function PortalCliente() {
   if (loading) {
     return (
       <div style={{
-        background: '#FFD94D', minHeight: '100vh',
+        background: '#FFFFFF', minHeight: '100vh',
         display: 'flex', alignItems: 'center', justifyContent: 'center'
       }}>
         <div style={{
@@ -104,7 +104,7 @@ export default function PortalCliente() {
 
   return (
     <div style={{
-      background: '#FFD94D', minHeight: '100vh',
+      background: '#FFF099', minHeight: '100vh',
       fontFamily: "'DM Sans', sans-serif",
       color: '#1A1A1A',
       paddingBottom: 40
