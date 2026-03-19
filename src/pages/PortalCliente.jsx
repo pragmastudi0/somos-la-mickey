@@ -54,7 +54,7 @@ export default function PortalCliente() {
   if (loading) {
     return (
       <div style={{
-        background: '#FFFFFF', minHeight: '100vh',
+        background: '#FFD94D', minHeight: '100vh',
         display: 'flex', alignItems: 'center', justifyContent: 'center'
       }}>
         <div style={{
