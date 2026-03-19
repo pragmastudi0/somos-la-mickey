@@ -170,7 +170,7 @@ export default function Dashboard() {
                           {cliente.nombre?.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div style={{ fontSize: 14, fontWeight: 500 }}>{cliente.nombre}</div>
+                          <div style={{ fontSize: 14, fontWeight: 500, color: '#FFFFFF' }}>{cliente.nombre}</div>
                           <div style={{ fontSize: 11, color: '#555555', marginTop: 1 }}>
                             Ciclo #{ciclo.numero} · {ciclo.compras_count} compras
                           </div>
