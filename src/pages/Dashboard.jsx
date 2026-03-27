@@ -239,7 +239,7 @@ export default function Dashboard() {
       <button
         onClick={() => setShowModal(true)}
         style={{
-          position: 'fixed', bottom: 28, right: 28,
+          position: 'fixed', bottom: 88, right: 24,
           background: '#E8001D', color: '#FFFFFF',
           border: 'none', borderRadius: 99,
           padding: '13px 20px',
