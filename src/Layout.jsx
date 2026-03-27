@@ -3,9 +3,20 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 
+function useIsMobile() {
+  const [mobile, setMobile] = useState(window.innerWidth <= 768);
+  useEffect(() => {
+    const fn = () => setMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
+  return mobile;
+}
+
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     base44.auth.me()
@@ -55,7 +66,14 @@ export default function Layout({ children, currentPageName }) {
         display: 'flex', fontFamily: "'DM Sans', sans-serif",
       }}>
         <AdminSidebar currentPage={currentPageName} user={user} />
-        <main style={{ flex: 1, overflow: 'auto', minHeight: '100vh' }}>
+        <main style={{
+          flex: 1,
+          overflow: 'auto',
+          minHeight: '100vh',
+          // En mobile: deja espacio para header (54px) y bottom nav (60px)
+          paddingTop: isMobile ? 54 : 0,
+          paddingBottom: isMobile ? 60 : 0,
+        }}>
           {children}
         </main>
       </div>
