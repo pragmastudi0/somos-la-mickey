@@ -4,6 +4,10 @@ import { api } from '@/api/client';
 
 const AuthContext = createContext(null);
 
+async function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -12,16 +16,29 @@ export const AuthProvider = ({ children }) => {
   const [role, setRole] = useState(null);
 
   const loadRole = useCallback(async (userId) => {
-    try {
-      const { data, error } = await supabase.from('somoslamickey_profiles').select('role').eq('id', userId).maybeSingle();
-      if (error) throw error;
-      const next = data?.role || 'cliente';
-      setRole(next);
-      return next;
-    } catch (error) {
-      setRole('cliente');
-      return 'cliente';
+    const fetchOnce = async () =>
+      supabase.from('somoslamickey_profiles').select('role').eq('id', userId).maybeSingle();
+
+    let { data, error } = await fetchOnce();
+    if (error) {
+      await sleep(250);
+      ({ data, error } = await fetchOnce());
     }
+
+    if (error) {
+      console.error('loadRole', error);
+      setAuthError({
+        type: 'role',
+        message: 'No se pudo leer tu rol. Verificá la conexión o reintentá.',
+      });
+      setRole(null);
+      return null;
+    }
+
+    const next = data?.role || 'cliente';
+    setRole(next);
+    setAuthError((prev) => (prev?.type === 'role' ? null : prev));
+    return next;
   }, []);
 
   const initializeAuth = useCallback(async () => {
@@ -34,7 +51,15 @@ export const AuthProvider = ({ children }) => {
       setUser(currentUser);
       setIsAuthenticated(Boolean(currentUser));
       if (currentUser && data.session?.access_token) {
-        await api.auth.syncCliente(data.session.access_token);
+        try {
+          await api.auth.syncCliente(data.session.access_token);
+        } catch (syncErr) {
+          console.error('syncCliente', syncErr);
+          setAuthError({
+            type: 'sync',
+            message: syncErr.message || 'Error al sincronizar tu cuenta.',
+          });
+        }
         await loadRole(currentUser.id);
       } else {
         setRole(null);
@@ -60,10 +85,14 @@ export const AuthProvider = ({ children }) => {
         void (async () => {
           try {
             await api.auth.syncCliente(session.access_token);
-            await loadRole(session.user.id);
-          } catch {
-            setRole('cliente');
+          } catch (syncErr) {
+            console.error('syncCliente', syncErr);
+            setAuthError({
+              type: 'sync',
+              message: syncErr.message || 'Error al sincronizar tu cuenta.',
+            });
           }
+          await loadRole(session.user.id);
         })();
       }
     });
@@ -76,8 +105,19 @@ export const AuthProvider = ({ children }) => {
     if (error) throw error;
     let resolvedRole = null;
     if (data.user && data.session?.access_token) {
-      await api.auth.syncCliente(data.session.access_token);
+      try {
+        await api.auth.syncCliente(data.session.access_token);
+      } catch (syncErr) {
+        console.error('syncCliente', syncErr);
+        setAuthError({
+          type: 'sync',
+          message: syncErr.message || 'Error al sincronizar tu cuenta.',
+        });
+      }
       resolvedRole = await loadRole(data.user.id);
+      if (resolvedRole == null) {
+        throw new Error('No se pudo cargar tu perfil. Reintentá.');
+      }
     }
     return { ...data, role: resolvedRole };
   };
@@ -92,11 +132,21 @@ export const AuthProvider = ({ children }) => {
       },
     });
     if (error) throw error;
-    // Con confirmación por email, session es null: el trigger en Supabase crea perfil/cliente igual.
     let resolvedRole = null;
     if (data.user && data.session?.access_token) {
-      await api.auth.syncCliente(data.session.access_token);
+      try {
+        await api.auth.syncCliente(data.session.access_token);
+      } catch (syncErr) {
+        console.error('syncCliente', syncErr);
+        setAuthError({
+          type: 'sync',
+          message: syncErr.message || 'Error al sincronizar tu cuenta.',
+        });
+      }
       resolvedRole = await loadRole(data.user.id);
+      if (resolvedRole == null) {
+        throw new Error('No se pudo cargar tu perfil. Reintentá.');
+      }
     }
     return { ...data, role: resolvedRole };
   };
@@ -105,21 +155,24 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setIsAuthenticated(false);
     setRole(null);
+    setAuthError(null);
     await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      role,
-      isAuthenticated, 
-      isLoadingAuth,
-      authError,
-      login,
-      signup,
-      logout,
-      refreshAuth: initializeAuth,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        role,
+        isAuthenticated,
+        isLoadingAuth,
+        authError,
+        login,
+        signup,
+        logout,
+        refreshAuth: initializeAuth,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
