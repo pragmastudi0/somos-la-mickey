@@ -5,6 +5,7 @@ import {
   LayoutDashboard, Users, ShoppingBag, Wallet, Tag, LogOut, Settings, Menu, X
 } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const navItems = [
   { name: 'Dashboard',   page: 'Dashboard',   icon: LayoutDashboard },
@@ -23,15 +24,13 @@ const bottomNavItems = [
   { name: 'Reintegros', page: 'Reintegros', icon: Wallet },
 ];
 
-function useIsMobile() {
-  const [mobile, setMobile] = useState(window.innerWidth <= 768);
-  useEffect(() => {
-    const fn = () => setMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', fn);
-    return () => window.removeEventListener('resize', fn);
-  }, []);
-  return mobile;
-}
+const tap44 = {
+  minWidth: 44,
+  minHeight: 44,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
 
 export default function AdminSidebar({ currentPage, user }) {
   const { logout } = useAuth();
@@ -47,11 +46,15 @@ export default function AdminSidebar({ currentPage, user }) {
         {/* Header mobile fijo */}
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
-          height: 54,
+          minHeight: 54,
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          paddingLeft: 'max(16px, env(safe-area-inset-left, 0px))',
+          paddingRight: 'max(16px, env(safe-area-inset-right, 0px))',
+          paddingBottom: 0,
           background: '#161616',
           borderBottom: '1px solid #1F1F1F',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 16px',
+          boxSizing: 'border-box',
         }}>
           <div>
             <div style={{
@@ -69,11 +72,13 @@ export default function AdminSidebar({ currentPage, user }) {
             </div>
           </div>
           <button
+            type="button"
+            aria-label="Abrir menú"
             onClick={() => setDrawerOpen(true)}
             style={{
               background: 'rgba(255,255,255,0.05)', border: '1px solid #2a2a2a',
-              borderRadius: 8, padding: '7px', cursor: 'pointer', color: '#FFFFFF',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: 8, cursor: 'pointer', color: '#FFFFFF',
+              ...tap44,
             }}
           >
             <Menu size={18} />
@@ -83,11 +88,14 @@ export default function AdminSidebar({ currentPage, user }) {
         {/* Bottom nav */}
         <div style={{
           position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200,
-          height: 60,
+          minHeight: 60,
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          paddingLeft: 'env(safe-area-inset-left, 0px)',
+          paddingRight: 'env(safe-area-inset-right, 0px)',
           background: '#161616',
           borderTop: '1px solid #1F1F1F',
           display: 'flex', alignItems: 'stretch',
-          paddingBottom: 'env(safe-area-inset-bottom)',
+          boxSizing: 'border-box',
         }}>
           {bottomNavItems.map(item => {
             const Icon = item.icon;
@@ -104,6 +112,8 @@ export default function AdminSidebar({ currentPage, user }) {
                   color: isActive ? '#E8001D' : '#555555',
                   borderTop: isActive ? '2px solid #E8001D' : '2px solid transparent',
                   transition: 'color 0.15s',
+                  minHeight: 48,
+                  WebkitTapHighlightColor: 'transparent',
                 }}
               >
                 <Icon size={18} />
@@ -119,6 +129,8 @@ export default function AdminSidebar({ currentPage, user }) {
           })}
           {/* Más */}
           <button
+            type="button"
+            aria-label="Más opciones"
             onClick={() => setDrawerOpen(true)}
             style={{
               flex: 1,
@@ -128,6 +140,8 @@ export default function AdminSidebar({ currentPage, user }) {
               color: ['Promociones','Ajustes'].includes(currentPage) ? '#E8001D' : '#555555',
               borderTop: ['Promociones','Ajustes'].includes(currentPage)
                 ? '2px solid #E8001D' : '2px solid transparent',
+              minHeight: 48,
+              WebkitTapHighlightColor: 'transparent',
             }}
           >
             <Menu size={18} />
@@ -154,12 +168,15 @@ export default function AdminSidebar({ currentPage, user }) {
             {/* Panel */}
             <div style={{
               position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 310,
-              width: 260,
+              width: 'min(260px, 100vw - 40px)',
               background: '#161616',
               borderLeft: '1px solid #1F1F1F',
               display: 'flex', flexDirection: 'column',
               padding: '20px 12px',
+              paddingTop: 'max(20px, env(safe-area-inset-top, 0px))',
+              paddingBottom: 'max(20px, env(safe-area-inset-bottom, 0px))',
               animation: 'slideInRight 0.22s ease',
+              boxSizing: 'border-box',
             }}>
               {/* Header del drawer */}
               <div style={{
@@ -176,11 +193,13 @@ export default function AdminSidebar({ currentPage, user }) {
                   </div>
                 </div>
                 <button
+                  type="button"
+                  aria-label="Cerrar menú"
                   onClick={() => setDrawerOpen(false)}
                   style={{
                     background: 'rgba(255,255,255,0.05)', border: '1px solid #2a2a2a',
-                    borderRadius: 8, padding: '6px', cursor: 'pointer', color: '#888888',
-                    display: 'flex',
+                    borderRadius: 8, cursor: 'pointer', color: '#888888',
+                    ...tap44,
                   }}
                 >
                   <X size={16} />
@@ -198,7 +217,8 @@ export default function AdminSidebar({ currentPage, user }) {
                       to={createPageUrl(item.page)}
                       style={{
                         display: 'flex', alignItems: 'center', gap: 10,
-                        padding: '11px 13px', borderRadius: 9,
+                        minHeight: 48,
+                        padding: '12px 13px', borderRadius: 9,
                         textDecoration: 'none',
                         color: isActive ? '#F9D100' : '#888888',
                         background: isActive ? 'rgba(249,209,0,0.08)' : 'transparent',
@@ -206,6 +226,7 @@ export default function AdminSidebar({ currentPage, user }) {
                         fontWeight: isActive ? 600 : 400,
                         fontSize: 14,
                         fontFamily: "'DM Sans', sans-serif",
+                        WebkitTapHighlightColor: 'transparent',
                       }}
                     >
                       <Icon size={15} />
@@ -226,14 +247,17 @@ export default function AdminSidebar({ currentPage, user }) {
                   {user?.full_name || user?.email}
                 </div>
                 <button
+                  type="button"
                   onClick={() => logout()}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '10px 13px', borderRadius: 9,
+                    minHeight: 48,
+                    padding: '12px 13px', borderRadius: 9,
                     color: '#888888', background: 'transparent',
                     border: 'none', cursor: 'pointer',
                     fontSize: 14, width: '100%',
                     fontFamily: "'DM Sans', sans-serif",
+                    WebkitTapHighlightColor: 'transparent',
                   }}
                 >
                   <LogOut size={15} />

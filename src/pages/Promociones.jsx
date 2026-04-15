@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '@/api/client';
 import { Plus, Trash2, Pause, Play, Tag } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { getAdminPageShellStyle, adminHeadingStyle, adminHeaderRowStyle, adminPrimaryCtaStyle } from '@/lib/adminPageShell';
 
 const BADGE_COLORS = {
   HOT:      { bg: 'rgba(232,0,29,0.12)',    color: '#E8001D' },
@@ -48,12 +50,19 @@ function NuevaPromoModal({ onClose, onSuccess }) {
       position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)',
       backdropFilter: 'blur(8px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 1000, padding: 16,
+      zIndex: 1000,
+      padding: 'max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))',
+      boxSizing: 'border-box',
     }} onClick={onClose}>
       <div style={{
         background: '#161616', border: '1px solid #1F1F1F',
         borderRadius: 20, width: '100%', maxWidth: 420,
+        maxHeight: 'min(90dvh, 900px)',
+        overflow: 'auto',
+        overflowX: 'hidden',
+        WebkitOverflowScrolling: 'touch',
         color: '#FFFFFF', fontFamily: "'DM Sans', sans-serif",
+        boxSizing: 'border-box',
       }} onClick={e => e.stopPropagation()}>
         <div style={{ padding: '20px 24px', borderBottom: '1px solid #1F1F1F' }}>
           <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 17, color: '#FFFFFF' }}>
@@ -122,6 +131,7 @@ function NuevaPromoModal({ onClose, onSuccess }) {
 }
 
 export default function Promociones() {
+  const isMobile = useIsMobile();
   const [promos, setPromos] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -147,11 +157,17 @@ export default function Promociones() {
   const activas = promos.filter(p => p.activa);
   const pausadas = promos.filter(p => !p.activa);
 
+  const promoGridStyle = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))',
+    gap: 12,
+  };
+
   return (
-    <div style={{ padding: '32px 28px', maxWidth: 900, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24 }}>
+    <div style={{ ...getAdminPageShellStyle(isMobile), maxWidth: 900 }}>
+      <div style={adminHeaderRowStyle(isMobile)}>
         <div>
-          <h1 style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 26, color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em' }}>
+          <h1 style={adminHeadingStyle(isMobile)}>
             Promociones
           </h1>
           <p style={{ color: '#888888', fontSize: 13, margin: '4px 0 0' }}>
@@ -159,12 +175,14 @@ export default function Promociones() {
           </p>
         </div>
         <button
+          type="button"
           onClick={() => setShowModal(true)}
           style={{
             background: '#E8001D', color: '#FFFFFF', border: 'none',
             borderRadius: 99, padding: '10px 18px', cursor: 'pointer',
             fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6,
             fontFamily: "'Nunito', sans-serif",
+            ...adminPrimaryCtaStyle(isMobile),
           }}
         >
           <Plus size={14} /> Nueva promoción
@@ -178,7 +196,7 @@ export default function Promociones() {
           {activas.length > 0 && (
             <>
               <div style={{ color: '#888888', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', marginBottom: 12 }}>ACTIVAS</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12, marginBottom: 28 }}>
+              <div style={{ ...promoGridStyle, marginBottom: 28 }}>
                 {activas.map(promo => {
                   const bStyle = BADGE_COLORS[promo.badge] || BADGE_COLORS.NUEVO;
                   return (
@@ -222,7 +240,7 @@ export default function Promociones() {
           {pausadas.length > 0 && (
             <>
               <div style={{ color: '#888888', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', marginBottom: 12 }}>PAUSADAS</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
+              <div style={promoGridStyle}>
                 {pausadas.map(promo => {
                   const bStyle = BADGE_COLORS[promo.badge] || BADGE_COLORS.NUEVO;
                   return (

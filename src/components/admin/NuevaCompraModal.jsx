@@ -74,7 +74,9 @@ export default function NuevaCompraModal({ clientes, clientePreseleccionado = nu
       style={{
         position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)',
         backdropFilter: 'blur(8px)', display: 'flex',
-        alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16,
+        alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+        padding: 'max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))',
+        boxSizing: 'border-box',
       }}
       onClick={onClose}
     >
@@ -82,8 +84,13 @@ export default function NuevaCompraModal({ clientes, clientePreseleccionado = nu
         style={{
           background: '#161616', border: '1px solid #1F1F1F',
           borderRadius: 20, width: '100%', maxWidth: 460,
-          overflow: 'hidden', color: '#FFFFFF',
+          maxHeight: 'min(90dvh, 900px)',
+          overflow: 'auto',
+          overflowX: 'hidden',
+          WebkitOverflowScrolling: 'touch',
+          color: '#FFFFFF',
           fontFamily: "'DM Sans', sans-serif",
+          boxSizing: 'border-box',
         }}
         onClick={e => e.stopPropagation()}
       >
@@ -99,7 +106,17 @@ export default function NuevaCompraModal({ clientes, clientePreseleccionado = nu
             </div>
             <div style={{ color: '#888888', fontSize: 12, marginTop: 2 }}>Paso {step} de 3</div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#888888', cursor: 'pointer', padding: 4 }}>
+          <button
+            type="button"
+            aria-label="Cerrar"
+            onClick={onClose}
+            style={{
+              background: 'none', border: 'none', color: '#888888', cursor: 'pointer',
+              minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: -8,
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >
             <X size={18} />
           </button>
         </div>

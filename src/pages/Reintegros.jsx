@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '@/api/client';
 import { Check, Clock } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { getAdminPageShellStyle, adminHeadingStyle } from '@/lib/adminPageShell';
 
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 const fmtDate = (d) => {
@@ -10,6 +12,7 @@ const fmtDate = (d) => {
 };
 
 export default function Reintegros() {
+  const isMobile = useIsMobile();
   const [ciclos, setCiclos] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,9 +49,9 @@ export default function Reintegros() {
   const totalPendiente = pendientes.reduce((s, c) => s + (c.acum_reintegro || 0), 0);
 
   return (
-    <div style={{ padding: '32px 28px', maxWidth: 900, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ ...getAdminPageShellStyle(isMobile), maxWidth: 900 }}>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 26, color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em' }}>
+        <h1 style={adminHeadingStyle(isMobile)}>
           Reintegros
         </h1>
         <p style={{ color: '#888888', fontSize: 13, margin: '4px 0 0' }}>Gestión de pagos a socios</p>
@@ -61,17 +64,22 @@ export default function Reintegros() {
           border: '1px solid rgba(232,0,29,0.2)',
           borderRadius: 14, padding: '20px 24px', marginBottom: 22,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          flexWrap: 'wrap', gap: 16,
         }}>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <div style={{ color: '#E8001D', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', marginBottom: 4 }}>
               TOTAL A PAGAR
             </div>
-            <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 40, color: '#F9D100', letterSpacing: '-0.03em' }}>
+            <div style={{
+              fontFamily: "'Nunito', sans-serif", fontWeight: 900,
+              fontSize: isMobile ? 28 : 40, color: '#F9D100', letterSpacing: '-0.03em',
+              wordBreak: 'break-word', lineHeight: 1.05,
+            }}>
               {fmt(totalPendiente)}
             </div>
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 28, color: '#FFFFFF' }}>
+          <div style={{ textAlign: isMobile ? 'left' : 'right' }}>
+            <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: isMobile ? 22 : 28, color: '#FFFFFF' }}>
               {pendientes.length}
             </div>
             <div style={{ color: '#888888', fontSize: 12 }}>socios pendientes</div>
@@ -97,6 +105,7 @@ export default function Reintegros() {
                       padding: '16px 20px',
                       borderBottom: i < pendientes.length - 1 ? '1px solid #1F1F1F' : 'none',
                       display: 'flex', alignItems: 'center', gap: 14,
+                      flexWrap: 'wrap',
                     }}>
                       <div style={{
                         width: 40, height: 40, borderRadius: 10, flexShrink: 0,
@@ -106,26 +115,34 @@ export default function Reintegros() {
                       }}>
                         {cliente?.nombre?.charAt(0).toUpperCase()}
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 600, fontSize: 14, color: '#FFFFFF' }}>{cliente?.nombre}</div>
+                      <div style={{ flex: '1 1 140px', minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: 14, color: '#FFFFFF', wordBreak: 'break-word' }}>{cliente?.nombre}</div>
                         <div style={{ color: '#555555', fontSize: 11, marginTop: 2 }}>
                           Ciclo #{ciclo.numero} · {ciclo.compras_count} compras
                         </div>
                       </div>
-                      <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 22, color: '#F9D100', marginRight: 8 }}>
+                      <div style={{
+                        fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 22, color: '#F9D100',
+                        marginRight: 8, flexShrink: 0,
+                      }}>
                         {fmt(ciclo.acum_reintegro)}
                       </div>
                       <button
+                        type="button"
                         onClick={() => handlePagar(ciclo)}
                         disabled={pagando === ciclo.id}
                         style={{
                           background: '#E8001D', color: '#FFFFFF',
                           border: 'none', borderRadius: 99,
-                          padding: '9px 16px', cursor: pagando === ciclo.id ? 'not-allowed' : 'pointer',
+                          padding: '10px 16px', cursor: pagando === ciclo.id ? 'not-allowed' : 'pointer',
                           fontSize: 13, fontWeight: 700,
                           opacity: pagando === ciclo.id ? 0.6 : 1,
                           display: 'flex', alignItems: 'center', gap: 5,
                           fontFamily: "'Nunito', sans-serif",
+                          minHeight: 44,
+                          flex: isMobile ? '1 1 100%' : '0 0 auto',
+                          justifyContent: 'center',
+                          WebkitTapHighlightColor: 'transparent',
                         }}
                       >
                         <Check size={13} />
@@ -156,7 +173,7 @@ export default function Reintegros() {
                 HISTORIAL DE PAGOS
               </div>
               <div style={{ background: '#161616', border: '1px solid #1F1F1F', borderRadius: 14, overflow: 'hidden' }}>
-                <div style={{ overflowX: 'auto' }}>
+                <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid #1F1F1F' }}>

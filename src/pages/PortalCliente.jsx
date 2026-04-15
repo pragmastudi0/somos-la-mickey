@@ -82,11 +82,12 @@ export default function PortalCliente() {
           Tu email ({user?.email}) no está registrado como socio.
           <br />Consultá con el negocio para que te den de alta.
         </div>
-        <button onClick={() => logout()} style={{
+        <button type="button" onClick={() => logout()} style={{
           background: 'transparent', color: '#888888',
           border: '1px solid #E0E0E0',
-          borderRadius: 99, padding: '9px 18px', cursor: 'pointer',
-          fontSize: 13, fontFamily: "'DM Sans', sans-serif"
+          borderRadius: 99, padding: '12px 22px', cursor: 'pointer',
+          fontSize: 13, fontFamily: "'DM Sans', sans-serif",
+          minHeight: 44, WebkitTapHighlightColor: 'transparent',
         }}>
           Cerrar sesión
         </button>
@@ -108,8 +109,8 @@ export default function PortalCliente() {
       background: '#FFFFFF', minHeight: '100vh',
       fontFamily: "'DM Sans', sans-serif",
       color: '#1A1A1A',
-      paddingBottom: 40
-    }} className="bg-yellow-100">
+      paddingBottom: 'max(40px, env(safe-area-inset-bottom, 0px))',
+    }}>
       {/* Header sticky */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
@@ -118,7 +119,11 @@ export default function PortalCliente() {
         boxShadow: '0 1px 6px rgba(0,0,0,0.05)'
       }}>
         <div style={{
-          maxWidth: 480, margin: '0 auto', padding: '14px 16px',
+          maxWidth: 480, margin: '0 auto',
+          paddingTop: 'max(14px, env(safe-area-inset-top, 0px))',
+          paddingBottom: 14,
+          paddingLeft: 'max(16px, env(safe-area-inset-left, 0px))',
+          paddingRight: 'max(16px, env(safe-area-inset-right, 0px))',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center'
         }}>
           <div>
@@ -134,15 +139,25 @@ export default function PortalCliente() {
             </div>
           </div>
           <button
+            type="button"
+            aria-label="Cerrar sesión"
             onClick={() => logout()}
-            style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', padding: 4 }}>
-            
-            <LogOut size={15} />
+            style={{
+              background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer',
+              minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginRight: -8,
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >
+            <LogOut size={18} />
           </button>
         </div>
       </div>
 
-      <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
+      <div style={{
+        maxWidth: 480, margin: '0 auto',
+        padding: '0 max(16px, env(safe-area-inset-left, 0px)) 0 max(16px, env(safe-area-inset-right, 0px))',
+      }}>
 
         {/* Saludo */}
         <div style={{ paddingTop: 24, marginBottom: 18 }}>
@@ -163,8 +178,10 @@ export default function PortalCliente() {
           </div>
           <div style={{
             fontFamily: "'Nunito', sans-serif", fontWeight: 900,
-            fontSize: 56, letterSpacing: '-0.04em', lineHeight: 1,
-            color: '#F9D100', marginBottom: 16
+            fontSize: 'clamp(2rem, 9vw, 3.5rem)',
+            letterSpacing: '-0.04em', lineHeight: 1,
+            color: '#F9D100', marginBottom: 16,
+            wordBreak: 'break-word',
           }}>
             {fmt(acum)}
           </div>

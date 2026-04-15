@@ -33,29 +33,37 @@ npm install
 npm run dev
 ```
 
-## Migraciones SQL (Supabase)
+## Setup Supabase desde cero (recomendado)
 
-Aplicar en orden en tu proyecto Supabase:
+Para una instalacion limpia, usar solo el bootstrap consolidado:
 
-- `supabase/migrations/202604150001_init_socios.sql` — tablas base (nombres legacy sin prefijo)
-- `supabase/migrations/202604150002_configuracion_slug_app.sql` — columna `slug_app`
-- `supabase/migrations/202604160001_rename_tables_somoslamickey.sql` — renombra tablas a `somoslamickey_*`, RLS y trigger de auth
+- `supabase/migrations/202604170001_bootstrap_somoslamickey.sql`
 
-Tras la última migración, las tablas en Postgres son: `somoslamickey_profiles`, `somoslamickey_clientes`, `somoslamickey_configuracion`, `somoslamickey_ciclos`, `somoslamickey_compras`, `somoslamickey_promociones`.
+Ese SQL crea todo en esquema prefijado y deja listo:
+`somoslamickey_profiles`, `somoslamickey_clientes`, `somoslamickey_configuracion`,
+`somoslamickey_ciclos`, `somoslamickey_compras`, `somoslamickey_promociones`,
+indices, trigger de auth, RLS y policies.
 
-### Comprobar que el alta de usuario funciona (SQL)
+### Pasos exactos
 
-En el SQL Editor de Supabase:
+1. Crear un proyecto nuevo en Supabase (o limpiar DB si queres reset total).
+2. En SQL Editor, ejecutar completo `202604170001_bootstrap_somoslamickey.sql`.
+3. En `Authentication -> Providers -> Email`, habilitar Email/Password.
+4. En `Authentication -> Providers -> Email`, desactivar `Confirm email` para login inmediato al registrarse.
+5. Probar registro nuevo desde la app.
 
-- Deben existir `public.somoslamickey_profiles` y `public.somoslamickey_clientes`.
-- El trigger `on_auth_user_created` en `auth.users` debe ejecutar `handle_new_user` que inserta en esas tablas (ver migración `202604160001_rename_tables_somoslamickey.sql`).
+### Checklist rapido de verificacion
+
+- Existe trigger `on_auth_user_created` sobre `auth.users`.
+- `public.handle_new_user` inserta en `somoslamickey_profiles` y `somoslamickey_clientes`.
+- Al registrarte, se crea fila en ambas tablas para el `auth.users.id`.
 
 ## Auth en producción (Supabase + Vercel)
 
 Revisá todo en el **mismo** proyecto Supabase que usan `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`:
 
 1. **Authentication → Providers → Email**: proveedor habilitado.
-2. **Authentication → Emails**: si **Confirm email** está activo, tras registrarse el usuario **no tendrá sesión** hasta abrir el enlace del correo; hasta entonces el login con contraseña puede responder error (p. ej. email no confirmado).
+2. **Authentication → Providers → Email**: para este setup inicial dejar **Confirm email** desactivado.
 3. **Authentication → URL configuration**: **Site URL** = la URL pública de la app (ej. `https://somos-la-mickey.vercel.app`). En **Redirect URLs** incluí esa URL y comodines necesarios (ej. `https://somos-la-mickey.vercel.app/**`).
 4. **Vercel**: mismas variables que en `.env.local` para el frontend; además `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` para las rutas en `api/` (sync de cliente, etc.).
 

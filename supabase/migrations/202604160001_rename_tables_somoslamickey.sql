@@ -46,11 +46,29 @@ BEGIN
   END IF;
 END $$;
 
--- 3) Rename indexes for consistency
-ALTER INDEX IF EXISTS public.idx_ciclos_cliente_id RENAME TO idx_somoslamickey_ciclos_cliente_id;
-ALTER INDEX IF EXISTS public.idx_compras_cliente_id RENAME TO idx_somoslamickey_compras_cliente_id;
-ALTER INDEX IF EXISTS public.idx_compras_fecha RENAME TO idx_somoslamickey_compras_fecha;
-ALTER INDEX IF EXISTS public.idx_promociones_activa RENAME TO idx_somoslamickey_promociones_activa;
+-- 3) Rename indexes for consistency (avoid collisions if target already exists)
+DO $$
+BEGIN
+  IF to_regclass('public.idx_ciclos_cliente_id') IS NOT NULL
+     AND to_regclass('public.idx_somoslamickey_ciclos_cliente_id') IS NULL THEN
+    ALTER INDEX public.idx_ciclos_cliente_id RENAME TO idx_somoslamickey_ciclos_cliente_id;
+  END IF;
+
+  IF to_regclass('public.idx_compras_cliente_id') IS NOT NULL
+     AND to_regclass('public.idx_somoslamickey_compras_cliente_id') IS NULL THEN
+    ALTER INDEX public.idx_compras_cliente_id RENAME TO idx_somoslamickey_compras_cliente_id;
+  END IF;
+
+  IF to_regclass('public.idx_compras_fecha') IS NOT NULL
+     AND to_regclass('public.idx_somoslamickey_compras_fecha') IS NULL THEN
+    ALTER INDEX public.idx_compras_fecha RENAME TO idx_somoslamickey_compras_fecha;
+  END IF;
+
+  IF to_regclass('public.idx_promociones_activa') IS NOT NULL
+     AND to_regclass('public.idx_somoslamickey_promociones_activa') IS NULL THEN
+    ALTER INDEX public.idx_promociones_activa RENAME TO idx_somoslamickey_promociones_activa;
+  END IF;
+END $$;
 
 -- 4) Auth trigger: insert into prefixed tables
 create or replace function public.handle_new_user()
@@ -68,9 +86,22 @@ begin
   values (new.id, new.email, 'cliente')
   on conflict (id) do update set email = excluded.email;
 
+  -- If a legacy/manual row already exists with the same email, link it to this auth user.
+  update public.somoslamickey_clientes
+  set
+    auth_user_id = new.id,
+    nombre = coalesce(nullif(trim(nombre), ''), initcap(replace(derived_name, '.', ' '))),
+    activo = true
+  where email = new.email
+    and (auth_user_id is null or auth_user_id <> new.id);
+
   insert into public.somoslamickey_clientes (auth_user_id, email, nombre, fecha_alta, activo)
   values (new.id, new.email, initcap(replace(derived_name, '.', ' ')), current_date, true)
-  on conflict (auth_user_id) do update set email = excluded.email;
+  on conflict (auth_user_id) do update
+    set
+      email = excluded.email,
+      nombre = coalesce(nullif(trim(somoslamickey_clientes.nombre), ''), excluded.nombre),
+      activo = true;
 
   return new;
 end;

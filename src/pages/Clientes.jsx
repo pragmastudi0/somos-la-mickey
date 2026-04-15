@@ -5,6 +5,8 @@ import { createPageUrl } from '@/utils';
 import { Search, Plus, ChevronRight } from 'lucide-react';
 import ProgressBar from '@/components/shared/ProgressBar';
 import NuevoClienteModal from '@/components/admin/NuevoClienteModal';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { getAdminPageShellStyle, adminHeadingStyle, adminHeaderRowStyle, adminPrimaryCtaStyle } from '@/lib/adminPageShell';
 
 const fmtDate = (d) => {
   if (!d) return '-';
@@ -14,6 +16,7 @@ const fmtDate = (d) => {
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 
 export default function Clientes() {
+  const isMobile = useIsMobile();
   const [clientes, setClientes] = useState([]);
   const [ciclos, setCiclos] = useState([]);
   const [config, setConfig] = useState({ umbral_compras: 15 });
@@ -47,24 +50,23 @@ export default function Clientes() {
   );
 
   return (
-    <div style={{ padding: '32px 28px', maxWidth: 1000, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24 }}>
+    <div style={{ ...getAdminPageShellStyle(isMobile), maxWidth: 1000 }}>
+      <div style={adminHeaderRowStyle(isMobile)}>
         <div>
-          <h1 style={{
-            fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 26,
-            color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em',
-          }}>Socios</h1>
+          <h1 style={adminHeadingStyle(isMobile)}>Socios</h1>
           <p style={{ color: '#888888', fontSize: 13, margin: '4px 0 0' }}>
             {clientes.filter(c => c.activo).length} socios activos
           </p>
         </div>
         <button
+          type="button"
           onClick={() => setShowModal(true)}
           style={{
             background: '#E8001D', color: '#FFFFFF', border: 'none',
             borderRadius: 99, padding: '10px 18px', cursor: 'pointer',
             fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6,
             fontFamily: "'Nunito', sans-serif",
+            ...adminPrimaryCtaStyle(isMobile),
           }}
         >
           <Plus size={14} /> Nuevo socio
@@ -109,6 +111,8 @@ export default function Clientes() {
                   border: '1px solid #1F1F1F',
                   textDecoration: 'none', color: '#FFFFFF',
                   transition: 'border-color 0.12s',
+                  flexWrap: isMobile ? 'wrap' : 'nowrap',
+                  WebkitTapHighlightColor: 'transparent',
                 }}
               >
                 {/* Avatar */}
