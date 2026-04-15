@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import {
   LayoutDashboard, Users, ShoppingBag, Wallet, Tag, LogOut, Settings, Menu, X
 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 
 const navItems = [
   { name: 'Dashboard',   page: 'Dashboard',   icon: LayoutDashboard },
@@ -34,6 +34,7 @@ function useIsMobile() {
 }
 
 export default function AdminSidebar({ currentPage, user }) {
+  const { logout } = useAuth();
   const isMobile = useIsMobile();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -225,7 +226,7 @@ export default function AdminSidebar({ currentPage, user }) {
                   {user?.full_name || user?.email}
                 </div>
                 <button
-                  onClick={() => base44.auth.logout()}
+                  onClick={() => logout()}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '10px 13px', borderRadius: 9,
@@ -318,7 +319,7 @@ export default function AdminSidebar({ currentPage, user }) {
           {user?.full_name || user?.email}
         </div>
         <button
-          onClick={() => base44.auth.logout()}
+          onClick={() => logout()}
           style={{
             display: 'flex', alignItems: 'center', gap: 10,
             padding: '9px 13px', borderRadius: 9,

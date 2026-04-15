@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { X } from 'lucide-react';
 
 export default function NuevoClienteModal({ onClose, onSuccess }) {
@@ -11,7 +11,7 @@ export default function NuevoClienteModal({ onClose, onSuccess }) {
   const handleGuardar = async () => {
     if (!nombre || !email) return;
     setSaving(true);
-    await base44.entities.Cliente.create({
+    await api.entities.Cliente.create({
       nombre,
       email,
       telefono,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { Plus, Trash2, Pause, Play, Tag } from 'lucide-react';
 
 const BADGE_COLORS = {
@@ -26,7 +26,7 @@ function NuevaPromoModal({ onClose, onSuccess }) {
   const handleSave = async () => {
     if (!titulo || !descripcion) return;
     setSaving(true);
-    await base44.entities.Promocion.create({
+    await api.entities.Promocion.create({
       titulo, descripcion, badge,
       activa: true,
       fecha_inicio: new Date().toISOString().split('T')[0],
@@ -127,7 +127,7 @@ export default function Promociones() {
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
-    const p = await base44.entities.Promocion.list();
+    const p = await api.entities.Promocion.list();
     setPromos(p.sort((a, b) => (b.activa ? 1 : 0) - (a.activa ? 1 : 0)));
     setLoading(false);
   };
@@ -135,12 +135,12 @@ export default function Promociones() {
   useEffect(() => { load(); }, []);
 
   const toggle = async (promo) => {
-    await base44.entities.Promocion.update(promo.id, { activa: !promo.activa });
+    await api.entities.Promocion.update(promo.id, { activa: !promo.activa });
     load();
   };
 
   const eliminar = async (id) => {
-    await base44.entities.Promocion.delete(id);
+    await api.entities.Promocion.delete(id);
     load();
   };
 

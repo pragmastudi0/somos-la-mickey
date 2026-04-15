@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { Plus } from 'lucide-react';
 import MetodoPagoBadge from '@/components/shared/MetodoPagoBadge';
 import NuevaCompraModal from '@/components/admin/NuevaCompraModal';
@@ -22,8 +22,8 @@ export default function Compras() {
 
   const load = async () => {
     const [co, cl] = await Promise.all([
-      base44.entities.Compra.list(),
-      base44.entities.Cliente.list(),
+      api.entities.Compra.list(),
+      api.entities.Cliente.list(),
     ]);
     setCompras(co.sort((a, b) => new Date(b.fecha || b.created_date) - new Date(a.fecha || a.created_date)));
     setClientes(cl);

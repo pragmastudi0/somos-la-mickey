@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ChevronLeft, ShoppingBag, Wallet, Plus, Check } from 'lucide-react';
@@ -28,10 +28,10 @@ export default function ClienteDetalle() {
 
   const load = async () => {
     const [clientes, allCompras, allCiclos, cfgs] = await Promise.all([
-      base44.entities.Cliente.list(),
-      base44.entities.Compra.list(),
-      base44.entities.Ciclo.list(),
-      base44.entities.Configuracion.list(),
+      api.entities.Cliente.list(),
+      api.entities.Compra.list(),
+      api.entities.Ciclo.list(),
+      api.entities.Configuracion.list(),
     ]);
     const c = clientes.find(cl => cl.id === clienteId);
     const mis = allCompras.filter(cp => cp.cliente_id === clienteId);
@@ -53,10 +53,10 @@ export default function ClienteDetalle() {
     if (!cicloActivo) return;
     setPagandoReintegro(true);
     const today = new Date().toISOString().split('T')[0];
-    await base44.entities.Ciclo.update(cicloActivo.id, {
+    await api.entities.Ciclo.update(cicloActivo.id, {
       retirado: true, monto_retirado: cicloActivo.acum_reintegro, fecha_retiro: today,
     });
-    await base44.entities.Ciclo.create({
+    await api.entities.Ciclo.create({
       cliente_id: clienteId, numero: (cicloActivo.numero || 0) + 1,
       acum_reintegro: 0, compras_count: 0, puede_retirar: false, retirado: false,
     });

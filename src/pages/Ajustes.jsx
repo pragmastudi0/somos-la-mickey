@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { Save, Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 
-function SeccionCard({ titulo, nota, children }) {
+function SeccionCard({ titulo, nota = '', children }) {
   return (
     <div style={{
       background: '#161616', border: '1px solid #1F1F1F',
@@ -56,15 +56,15 @@ export default function Ajustes() {
 
   const load = async () => {
     const [cfgs, cls] = await Promise.all([
-      base44.entities.Configuracion.list(),
-      base44.entities.Cliente.list(),
+      api.entities.Configuracion.list(),
+      api.entities.Cliente.list(),
     ]);
     if (cfgs && cfgs.length > 0) {
       setConfig({ ...cfgs[0] });
       setConfigId(cfgs[0].id);
     } else {
       // Crear configuración inicial
-      const nueva = await base44.entities.Configuracion.create({
+      const nueva = await api.entities.Configuracion.create({
         porcentaje_efectivo: 10,
         porcentaje_tarjeta: 5,
         umbral_compras: 15,
@@ -81,12 +81,12 @@ export default function Ajustes() {
 
   const handleSave = async (seccion) => {
     setSaving(seccion);
-    await base44.entities.Configuracion.update(configId, config);
+    await api.entities.Configuracion.update(configId, config);
     setSaving(null);
   };
 
   const handleGuardarExcepcion = async (cliente, pctEfectivo, pctTarjeta) => {
-    await base44.entities.Cliente.update(cliente.id, {
+    await api.entities.Cliente.update(cliente.id, {
       porcentaje_efectivo_custom: pctEfectivo !== '' ? parseFloat(pctEfectivo) : null,
       porcentaje_tarjeta_custom: pctTarjeta !== '' ? parseFloat(pctTarjeta) : null,
     });
@@ -96,7 +96,7 @@ export default function Ajustes() {
   };
 
   const handleQuitarExcepcion = async (cliente) => {
-    await base44.entities.Cliente.update(cliente.id, {
+    await api.entities.Cliente.update(cliente.id, {
       porcentaje_efectivo_custom: null,
       porcentaje_tarjeta_custom: null,
     });

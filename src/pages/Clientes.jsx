@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Search, Plus, ChevronRight } from 'lucide-react';
@@ -23,9 +23,9 @@ export default function Clientes() {
 
   const load = async () => {
     const [c, ci, cfgs] = await Promise.all([
-      base44.entities.Cliente.list(),
-      base44.entities.Ciclo.list(),
-      base44.entities.Configuracion.list(),
+      api.entities.Cliente.list(),
+      api.entities.Ciclo.list(),
+      api.entities.Configuracion.list(),
     ]);
     setClientes(c);
     setCiclos(ci);

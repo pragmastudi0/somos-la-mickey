@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { Check, Clock } from 'lucide-react';
 
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
@@ -17,8 +17,8 @@ export default function Reintegros() {
 
   const load = async () => {
     const [ci, cl] = await Promise.all([
-      base44.entities.Ciclo.list(),
-      base44.entities.Cliente.list(),
+      api.entities.Ciclo.list(),
+      api.entities.Cliente.list(),
     ]);
     setCiclos(ci.sort((a, b) => (b.numero || 0) - (a.numero || 0)));
     setClientes(cl);
@@ -30,10 +30,10 @@ export default function Reintegros() {
   const handlePagar = async (ciclo) => {
     setPagando(ciclo.id);
     const today = new Date().toISOString().split('T')[0];
-    await base44.entities.Ciclo.update(ciclo.id, {
+    await api.entities.Ciclo.update(ciclo.id, {
       retirado: true, monto_retirado: ciclo.acum_reintegro, fecha_retiro: today,
     });
-    await base44.entities.Ciclo.create({
+    await api.entities.Ciclo.create({
       cliente_id: ciclo.cliente_id, numero: (ciclo.numero || 0) + 1,
       acum_reintegro: 0, compras_count: 0, puede_retirar: false, retirado: false,
     });

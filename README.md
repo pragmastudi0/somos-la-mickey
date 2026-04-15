@@ -1,39 +1,61 @@
-**Welcome to your Base44 project** 
+# Somos la Mickey - App Socios
 
-**About**
+Frontend en React + Vite, autenticación con Supabase Auth y capa backend con API Routes de Vercel.
 
-View and Edit  your app on [Base44.com](http://Base44.com) 
+## Requisitos
 
-This project contains everything you need to run your app locally.
+- Node.js 20+
+- Proyecto en Supabase
+- Vercel CLI opcional para pruebas de deploy
 
-**Edit the code in your local development environment**
+## Variables de entorno
 
-Any change pushed to the repo will also be reflected in the Base44 Builder.
+Crear `.env.local` para desarrollo frontend:
 
-**Prerequisites:** 
-
-1. Clone the repository using the project's Git URL 
-2. Navigate to the project directory
-3. Install dependencies: `npm install`
-4. Create an `.env.local` file and set the right environment variables
-
-```
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=your_backend_url
-
-e.g.
-VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
-VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
+```bash
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
 ```
 
-Run the app: `npm run dev`
+Configurar en Vercel (Project Settings -> Environment Variables):
 
-**Publish your changes**
+```bash
+SUPABASE_URL=...
+SUPABASE_SERVICE_ROLE_KEY=...
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+```
 
-Open [Base44.com](http://Base44.com) and click on Publish.
+## Levantar local
 
-**Docs & Support**
+```bash
+npm install
+npm run dev
+```
 
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
+## Migraciones SQL (Supabase)
 
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+El esquema inicial está en:
+
+- `supabase/migrations/202604150001_init_socios.sql`
+
+Aplicar la migración en tu proyecto Supabase antes de usar la app.
+
+## Migración de datos históricos
+
+Script idempotente:
+
+```bash
+node scripts/migrate-legacy-to-supabase.mjs ./ruta/export.json
+```
+
+El JSON de entrada debe incluir arrays: `clientes`, `configuracion`, `ciclos`, `compras`, `promociones`.
+
+## Deploy en Vercel
+
+- Build command: `npm run build`
+- Output directory: `dist`
+- Framework preset: `Vite`
+- API Routes: carpeta `api/`
+
+El proyecto incluye `vercel.json` con rewrite para SPA y rutas internas.

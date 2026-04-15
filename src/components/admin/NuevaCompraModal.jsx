@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { X, Search, ChevronRight, ChevronLeft, Check } from 'lucide-react';
 
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
@@ -10,7 +10,7 @@ const METODOS = [
   { value: 'transferencia', label: 'Transferencia', color: '#7c3aed' },
 ];
 
-export default function NuevaCompraModal({ clientes, clientePreseleccionado, onClose, onSuccess }) {
+export default function NuevaCompraModal({ clientes, clientePreseleccionado = null, onClose, onSuccess }) {
   const [step, setStep] = useState(clientePreseleccionado ? 2 : 1);
   const [clienteSel, setClienteSel] = useState(clientePreseleccionado || null);
   const [search, setSearch] = useState('');
@@ -21,7 +21,7 @@ export default function NuevaCompraModal({ clientes, clientePreseleccionado, onC
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    base44.entities.Configuracion.list().then(cfgs => {
+    api.entities.Configuracion.list().then(cfgs => {
       if (cfgs && cfgs.length > 0) setConfig(cfgs[0]);
     });
   }, []);
@@ -52,42 +52,11 @@ export default function NuevaCompraModal({ clientes, clientePreseleccionado, onC
     if (!clienteSel || !monto || !metodo) return;
     setSaving(true);
 
-    const allCiclos = await base44.entities.Ciclo.list();
-    const ciclosCliente = allCiclos.filter(c => c.cliente_id === clienteSel.id);
-    let cicloActivo = ciclosCliente.find(c => !c.retirado);
-
-    if (!cicloActivo) {
-      const maxNum = ciclosCliente.reduce((m, c) => Math.max(m, c.numero || 0), 0);
-      cicloActivo = await base44.entities.Ciclo.create({
-        cliente_id: clienteSel.id,
-        numero: maxNum + 1,
-        acum_reintegro: 0,
-        compras_count: 0,
-        puede_retirar: false,
-        retirado: false,
-      });
-    }
-
-    const umbral = config.umbral_compras || 15;
-    const reintCalc = Math.round(montoNum * pct / 100);
-
-    await base44.entities.Compra.create({
+    await api.entities.Compra.create({
       cliente_id: clienteSel.id,
       monto: montoNum,
       metodo_pago: metodo,
-      reintegro_generado: reintCalc,
-      porcentaje_aplicado: pct,
       fecha: fecha,
-      ciclo_id: cicloActivo.id,
-      ciclo_numero: cicloActivo.numero,
-    });
-
-    const newCount = (cicloActivo.compras_count || 0) + 1;
-    const newAcum = (cicloActivo.acum_reintegro || 0) + reintCalc;
-    await base44.entities.Ciclo.update(cicloActivo.id, {
-      compras_count: newCount,
-      acum_reintegro: newAcum,
-      puede_retirar: newCount >= umbral,
     });
 
     setSaving(false);

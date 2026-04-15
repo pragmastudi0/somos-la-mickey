@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Wallet, Users, Clock, TrendingUp, Plus, ShoppingBag, ArrowRight } from 'lucide-react';
@@ -51,10 +51,10 @@ export default function Dashboard() {
 
   const load = async () => {
     const [c, co, ci, cfgs] = await Promise.all([
-      base44.entities.Cliente.list(),
-      base44.entities.Compra.list('-fecha', 50),
-      base44.entities.Ciclo.list(),
-      base44.entities.Configuracion.list(),
+      api.entities.Cliente.list(),
+      api.entities.Compra.list('-fecha', 50),
+      api.entities.Ciclo.list(),
+      api.entities.Configuracion.list(),
     ]);
     setClientes(c);
     setCompras(co);

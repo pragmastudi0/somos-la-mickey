@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
-import { Tag, LogOut, Gift } from 'lucide-react';
+import { api } from '@/api/client';
+import { Tag, LogOut } from 'lucide-react';
 import ProgressBar from '@/components/shared/ProgressBar';
 import MetodoPagoBadge from '@/components/shared/MetodoPagoBadge';
+import { useAuth } from '@/lib/AuthContext';
 
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 const fmtDate = (d) => {
@@ -19,7 +20,7 @@ const BADGE_COLORS = {
 };
 
 export default function PortalCliente() {
-  const [user, setUser] = useState(null);
+  const { user, logout } = useAuth();
   const [cliente, setCliente] = useState(null);
   const [compras, setCompras] = useState([]);
   const [ciclos, setCiclos] = useState([]);
@@ -30,16 +31,14 @@ export default function PortalCliente() {
 
   useEffect(() => {
     const init = async () => {
-      const u = await base44.auth.me();
-      setUser(u);
       const [clientes, allCompras, allCiclos, allPromos, cfgs] = await Promise.all([
-      base44.entities.Cliente.list(),
-      base44.entities.Compra.list(),
-      base44.entities.Ciclo.list(),
-      base44.entities.Promocion.list(),
-      base44.entities.Configuracion.list()]
+      api.entities.Cliente.list(),
+      api.entities.Compra.list(),
+      api.entities.Ciclo.list(),
+      api.entities.Promocion.list(),
+      api.entities.Configuracion.list()]
       );
-      const cl = clientes.find((c) => c.email === u.email);
+      const cl = clientes.find((c) => c.email === user?.email);
       if (!cl) {setNoEncontrado(true);setLoading(false);return;}
       setCliente(cl);
       setCompras(allCompras.filter((c) => c.cliente_id === cl.id).sort((a, b) => new Date(b.fecha || b.created_date) - new Date(a.fecha || a.created_date)));
@@ -48,8 +47,10 @@ export default function PortalCliente() {
       if (cfgs && cfgs.length > 0) setConfig(cfgs[0]);
       setLoading(false);
     };
-    init().catch(() => {base44.auth.redirectToLogin();});
-  }, []);
+    if (user?.email) {
+      init().catch(() => setLoading(false));
+    }
+  }, [user]);
 
   if (loading) {
     return (
@@ -81,7 +82,7 @@ export default function PortalCliente() {
           Tu email ({user?.email}) no está registrado como socio.
           <br />Consultá con el negocio para que te den de alta.
         </div>
-        <button onClick={() => base44.auth.logout()} style={{
+        <button onClick={() => logout()} style={{
           background: 'transparent', color: '#888888',
           border: '1px solid #E0E0E0',
           borderRadius: 99, padding: '9px 18px', cursor: 'pointer',
@@ -133,7 +134,7 @@ export default function PortalCliente() {
             </div>
           </div>
           <button
-            onClick={() => base44.auth.logout()}
+            onClick={() => logout()}
             style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', padding: 4 }}>
             
             <LogOut size={15} />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import { useAuth } from '@/lib/AuthContext';
 
 function useIsMobile() {
   const [mobile, setMobile] = useState(window.innerWidth <= 768);
@@ -14,29 +14,19 @@ function useIsMobile() {
 }
 
 export default function Layout({ children, currentPageName }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, role, isLoadingAuth } = useAuth();
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    base44.auth.me()
-      .then(u => { setUser(u); setLoading(false); })
-      .catch(() => {
-        base44.auth.redirectToLogin();
-        setLoading(false);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (!loading && user && user.role !== 'admin') {
+    if (!isLoadingAuth && user && role !== 'admin') {
       const clientPages = ['PortalCliente'];
       if (!clientPages.includes(currentPageName)) {
         window.location.href = createPageUrl('PortalCliente');
       }
     }
-  }, [loading, user, currentPageName]);
+  }, [isLoadingAuth, user, role, currentPageName]);
 
-  if (loading) {
+  if (isLoadingAuth) {
     return (
       <div style={{
         background: '#1A1A1A', minHeight: '100vh',
@@ -53,7 +43,7 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = role === 'admin';
 
   if (!isAdmin && currentPageName !== 'PortalCliente') {
     return null;
