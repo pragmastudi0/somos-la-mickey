@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
 
   const loadRole = async (userId) => {
     try {
-      const { data, error } = await supabase.from('profiles').select('role').eq('id', userId).maybeSingle();
+      const { data, error } = await supabase.from('somoslamickey_profiles').select('role').eq('id', userId).maybeSingle();
       if (error) throw error;
       setRole(data?.role || 'cliente');
     } catch (error) {

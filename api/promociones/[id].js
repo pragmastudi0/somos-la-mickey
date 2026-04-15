@@ -12,7 +12,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'PATCH') {
       const { data, error } = await supabaseAdmin
-        .from('promociones')
+        .from('somoslamickey_promociones')
         .update(req.body || {})
         .eq('id', id)
         .select('*')
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       return sendJson(res, 200, data);
     }
 
-    const { error } = await supabaseAdmin.from('promociones').delete().eq('id', id);
+    const { error } = await supabaseAdmin.from('somoslamickey_promociones').delete().eq('id', id);
     if (error) throw error;
     sendJson(res, 204, null);
   } catch (error) {

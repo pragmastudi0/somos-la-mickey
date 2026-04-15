@@ -11,7 +11,7 @@ export default async function handler(req, res) {
       const auth = await requireAuth(req, res);
       if (!auth) return;
 
-      let query = supabaseAdmin.from('promociones').select('*');
+      let query = supabaseAdmin.from('somoslamickey_promociones').select('*');
       if (auth.role !== 'admin') {
         query = query.eq('activa', true);
       }
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 
     const auth = await requireAdmin(req, res);
     if (!auth) return;
-    const { data, error } = await supabaseAdmin.from('promociones').insert(req.body || {}).select('*').single();
+    const { data, error } = await supabaseAdmin.from('somoslamickey_promociones').insert(req.body || {}).select('*').single();
     if (error) throw error;
     sendJson(res, 201, data);
   } catch (error) {

@@ -9,7 +9,7 @@ async function getUserByToken(token) {
 
 async function getRole(userId) {
   const { data, error } = await supabaseAdmin
-    .from('profiles')
+    .from('somoslamickey_profiles')
     .select('role')
     .eq('id', userId)
     .maybeSingle();

@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     const { user } = auth;
 
     const { error: profileError } = await supabaseAdmin
-      .from('profiles')
+      .from('somoslamickey_profiles')
       .upsert(
         {
           id: user.id,
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     if (profileError) throw profileError;
 
     const { error: clienteError } = await supabaseAdmin
-      .from('clientes')
+      .from('somoslamickey_clientes')
       .upsert(
         {
           auth_user_id: user.id,

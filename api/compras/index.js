@@ -4,14 +4,14 @@ import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
 import { applySortAndLimit, getClienteByAuthUserId } from '../_lib/data.js';
 
 async function getConfig() {
-  const { data, error } = await supabaseAdmin.from('configuracion').select('*').limit(1).maybeSingle();
+  const { data, error } = await supabaseAdmin.from('somoslamickey_configuracion').select('*').limit(1).maybeSingle();
   if (error) throw error;
   return data || { porcentaje_efectivo: 10, porcentaje_tarjeta: 5, umbral_compras: 15 };
 }
 
 async function getOrCreateActiveCiclo(clienteId) {
   const { data: ciclos, error } = await supabaseAdmin
-    .from('ciclos')
+    .from('somoslamickey_ciclos')
     .select('*')
     .eq('cliente_id', clienteId)
     .order('numero', { ascending: false });
@@ -22,7 +22,7 @@ async function getOrCreateActiveCiclo(clienteId) {
 
   const maxNumero = (ciclos || []).reduce((acc, item) => Math.max(acc, item.numero || 0), 0);
   const { data: created, error: createError } = await supabaseAdmin
-    .from('ciclos')
+    .from('somoslamickey_ciclos')
     .insert({
       cliente_id: clienteId,
       numero: maxNumero + 1,
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
       const auth = await requireAuth(req, res);
       if (!auth) return;
 
-      let query = supabaseAdmin.from('compras').select('*');
+      let query = supabaseAdmin.from('somoslamickey_compras').select('*');
       if (auth.role !== 'admin') {
         const cliente = await getClienteByAuthUserId(auth.user.id);
         if (!cliente?.id) return sendJson(res, 200, []);
@@ -64,7 +64,7 @@ export default async function handler(req, res) {
     const payload = req.body || {};
     const config = await getConfig();
     const { data: cliente, error: clienteError } = await supabaseAdmin
-      .from('clientes')
+      .from('somoslamickey_clientes')
       .select('*')
       .eq('id', payload.cliente_id)
       .single();
@@ -92,7 +92,7 @@ export default async function handler(req, res) {
     };
 
     const { data: compra, error: compraError } = await supabaseAdmin
-      .from('compras')
+      .from('somoslamickey_compras')
       .insert(compraInput)
       .select('*')
       .single();
@@ -101,7 +101,7 @@ export default async function handler(req, res) {
     const newCount = (cicloActivo.compras_count || 0) + 1;
     const umbral = config.umbral_compras || 15;
     const { error: cicloError } = await supabaseAdmin
-      .from('ciclos')
+      .from('somoslamickey_ciclos')
       .update({
         compras_count: newCount,
         acum_reintegro: (cicloActivo.acum_reintegro || 0) + reintegro,

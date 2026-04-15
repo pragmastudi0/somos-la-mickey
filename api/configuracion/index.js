@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const auth = await requireAuth(req, res);
       if (!auth) return;
-      let query = supabaseAdmin.from('configuracion').select('*');
+      let query = supabaseAdmin.from('somoslamickey_configuracion').select('*');
       applySortAndLimit(query, req.query.sort, req.query.limit);
       const { data, error } = await query;
       if (error) throw error;
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     const auth = await requireAdmin(req, res);
     if (!auth) return;
     const { data, error } = await supabaseAdmin
-      .from('configuracion')
+      .from('somoslamickey_configuracion')
       .insert(req.body || {})
       .select('*')
       .single();

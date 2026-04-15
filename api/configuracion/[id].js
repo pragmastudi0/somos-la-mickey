@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     if (!auth) return;
 
     const { data, error } = await supabaseAdmin
-      .from('configuracion')
+      .from('somoslamickey_configuracion')
       .update(req.body || {})
       .eq('id', req.query.id)
       .select('*')

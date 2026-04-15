@@ -13,7 +13,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'PATCH') {
       const { data, error } = await supabaseAdmin
-        .from('clientes')
+        .from('somoslamickey_clientes')
         .update(req.body || {})
         .eq('id', id)
         .select('*')
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
       return sendJson(res, 200, data);
     }
 
-    const { error } = await supabaseAdmin.from('clientes').delete().eq('id', id);
+    const { error } = await supabaseAdmin.from('somoslamickey_clientes').delete().eq('id', id);
     if (error) throw error;
     sendJson(res, 204, null);
   } catch (error) {

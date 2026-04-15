@@ -39,14 +39,20 @@ const configuracionNormalized = configuracion.map((item) => ({
   slug_app: item.slug_app || 'somos-la-mickey',
 }));
 
-await upsert('clientes', clientes, 'id');
-await upsert('configuracion', configuracionNormalized, 'id');
-await upsert('ciclos', ciclos, 'id');
-await upsert('compras', compras, 'id');
-await upsert('promociones', promociones, 'id');
+await upsert('somoslamickey_clientes', clientes, 'id');
+await upsert('somoslamickey_configuracion', configuracionNormalized, 'id');
+await upsert('somoslamickey_ciclos', ciclos, 'id');
+await upsert('somoslamickey_compras', compras, 'id');
+await upsert('somoslamickey_promociones', promociones, 'id');
 
 const checks = {};
-for (const table of ['clientes', 'configuracion', 'ciclos', 'compras', 'promociones']) {
+for (const table of [
+  'somoslamickey_clientes',
+  'somoslamickey_configuracion',
+  'somoslamickey_ciclos',
+  'somoslamickey_compras',
+  'somoslamickey_promociones',
+]) {
   const { count, error } = await supabase.from(table).select('*', { count: 'exact', head: true });
   if (error) throw error;
   checks[table] = count ?? 0;

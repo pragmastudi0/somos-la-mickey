@@ -17,7 +17,7 @@ export function applySortAndLimit(query, sortRaw, limitRaw) {
 
 export async function getClienteByAuthUserId(authUserId) {
   const { data, error } = await supabaseAdmin
-    .from('clientes')
+    .from('somoslamickey_clientes')
     .select('id')
     .eq('auth_user_id', authUserId)
     .maybeSingle();
