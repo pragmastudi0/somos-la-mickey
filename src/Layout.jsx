@@ -1,17 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { createPageUrl } from '@/utils';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { useAuth } from '@/lib/AuthContext';
-
-function useIsMobile() {
-  const [mobile, setMobile] = useState(window.innerWidth <= 768);
-  useEffect(() => {
-    const fn = () => setMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', fn);
-    return () => window.removeEventListener('resize', fn);
-  }, []);
-  return mobile;
-}
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function Layout({ children, currentPageName }) {
   const { user, role, isLoadingAuth } = useAuth();
@@ -60,9 +51,9 @@ export default function Layout({ children, currentPageName }) {
           flex: 1,
           overflow: 'auto',
           minHeight: '100vh',
-          // En mobile: deja espacio para header (54px) y bottom nav (60px)
-          paddingTop: isMobile ? 54 : 0,
-          paddingBottom: isMobile ? 60 : 0,
+          // Mobile: chrome + safe areas (header/bottom nav en AdminSidebar)
+          paddingTop: isMobile ? 'calc(54px + env(safe-area-inset-top, 0px))' : 0,
+          paddingBottom: isMobile ? 'calc(60px + env(safe-area-inset-bottom, 0px))' : 0,
         }}>
           {children}
         </main>

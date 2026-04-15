@@ -5,6 +5,8 @@ import { createPageUrl } from '@/utils';
 import { Wallet, Users, Clock, TrendingUp, Plus, ShoppingBag, ArrowRight } from 'lucide-react';
 import NuevaCompraModal from '@/components/admin/NuevaCompraModal';
 import MetodoPagoBadge from '@/components/shared/MetodoPagoBadge';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { getAdminPageShellStyle, adminHeadingStyle } from '@/lib/adminPageShell';
 
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 const fmtDate = (d) => {
@@ -42,6 +44,7 @@ function StatCard({ icon: Icon, label, value, sub, accentColor, bgColor }) {
 }
 
 export default function Dashboard() {
+  const isMobile = useIsMobile();
   const [clientes, setClientes] = useState([]);
   const [compras, setCompras] = useState([]);
   const [ciclos, setCiclos] = useState([]);
@@ -86,12 +89,9 @@ export default function Dashboard() {
     .slice(0, 6);
 
   return (
-    <div style={{ padding: '32px 28px', maxWidth: 1100, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ ...getAdminPageShellStyle(isMobile), maxWidth: 1100 }}>
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{
-          fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 26,
-          color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em',
-        }}>
+        <h1 style={adminHeadingStyle(isMobile)}>
           Dashboard
         </h1>
         <p style={{ color: '#888888', fontSize: 13, margin: '4px 0 0' }}>
@@ -105,7 +105,10 @@ export default function Dashboard() {
         <>
           {/* Stats */}
           <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            display: 'grid',
+            gridTemplateColumns: isMobile
+              ? 'repeat(auto-fit, minmax(160px, 1fr))'
+              : 'repeat(auto-fit, minmax(220px, 1fr))',
             gap: 12, marginBottom: 28,
           }}>
             <StatCard
@@ -130,7 +133,7 @@ export default function Dashboard() {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
             {/* Reintegros a pagar */}
             <div style={{
               background: '#161616', border: '1px solid #1F1F1F',
@@ -158,8 +161,10 @@ export default function Dashboard() {
                       padding: '13px 20px',
                       borderBottom: '1px solid rgba(255,255,255,0.04)',
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      gap: 10,
+                      flexWrap: isMobile ? 'wrap' : 'nowrap',
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: '1 1 160px' }}>
                         <div style={{
                           width: 34, height: 34, borderRadius: 8,
                           background: 'rgba(232,0,29,0.1)',
@@ -169,8 +174,8 @@ export default function Dashboard() {
                         }}>
                           {cliente.nombre?.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                          <div style={{ fontSize: 14, fontWeight: 500, color: '#FFFFFF' }}>{cliente.nombre}</div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 500, color: '#FFFFFF', wordBreak: 'break-word' }}>{cliente.nombre}</div>
                           <div style={{ fontSize: 11, color: '#555555', marginTop: 1 }}>
                             Ciclo #{ciclo.numero} · {ciclo.compras_count} compras
                           </div>
@@ -179,6 +184,8 @@ export default function Dashboard() {
                       <div style={{
                         fontFamily: "'Nunito', sans-serif", fontWeight: 900,
                         color: '#F9D100', fontSize: 17,
+                        flexShrink: 0,
+                        marginLeft: isMobile ? 'auto' : undefined,
                       }}>
                         {fmt(ciclo.acum_reintegro)}
                       </div>
@@ -212,11 +219,13 @@ export default function Dashboard() {
                       padding: '11px 20px',
                       borderBottom: i < ultimasCompras.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      gap: 10,
+                      flexWrap: isMobile ? 'wrap' : 'nowrap',
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: '1 1 140px' }}>
                         <ShoppingBag size={13} style={{ color: '#444444', flexShrink: 0 }} />
-                        <div>
-                          <div style={{ fontSize: 13, fontWeight: 500, color: '#FFFFFF' }}>{cliente?.nombre || 'Desconocido'}</div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 500, color: '#FFFFFF', wordBreak: 'break-word' }}>{cliente?.nombre || 'Desconocido'}</div>
                           <div style={{ fontSize: 11, color: '#444444', marginTop: 1 }}>{fmtDate(cp.fecha)}</div>
                         </div>
                       </div>
@@ -237,16 +246,24 @@ export default function Dashboard() {
 
       {/* FAB */}
       <button
+        type="button"
         onClick={() => setShowModal(true)}
         style={{
-          position: 'fixed', bottom: 88, right: 24,
+          position: 'fixed',
+          zIndex: 150,
+          bottom: isMobile
+            ? 'calc(72px + env(safe-area-inset-bottom, 0px))'
+            : 24,
+          right: isMobile ? 'max(16px, env(safe-area-inset-right, 0px))' : 24,
           background: '#E8001D', color: '#FFFFFF',
           border: 'none', borderRadius: 99,
-          padding: '13px 20px',
+          padding: '13px 18px',
           cursor: 'pointer', boxShadow: '0 4px 24px rgba(232,0,29,0.35)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-          fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 14,
+          fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: isMobile ? 13 : 14,
           transition: 'transform 0.1s',
+          minHeight: 48,
+          WebkitTapHighlightColor: 'transparent',
         }}
         title="Registrar compra"
       >

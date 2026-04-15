@@ -118,8 +118,12 @@ export default function AuthPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#111111', padding: 16 }}>
-      <div style={{ width: '100%', maxWidth: 400, background: '#161616', border: '1px solid #1F1F1F', borderRadius: 16, padding: 24 }}>
+    <div style={{
+      minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#111111',
+      padding: 'max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))',
+      boxSizing: 'border-box',
+    }}>
+      <div style={{ width: '100%', maxWidth: 400, background: '#161616', border: '1px solid #1F1F1F', borderRadius: 16, padding: 24, boxSizing: 'border-box' }}>
         <h1 style={{ margin: 0, color: '#FFFFFF', fontSize: 24, fontWeight: 900 }}>Somos la Mickey</h1>
         <p style={{ marginTop: 6, color: '#888888', fontSize: 13 }}>
           {mode === 'signup' ? 'Crear cuenta de socio' : 'Ingresar a tu cuenta'}
@@ -152,9 +156,11 @@ export default function AuthPage() {
               background: '#E8001D',
               color: '#FFFFFF',
               fontWeight: 700,
-              padding: '11px 14px',
+              padding: '12px 14px',
+              minHeight: 48,
               opacity: saving ? 0.6 : 1,
               cursor: saving ? 'not-allowed' : 'pointer',
+              WebkitTapHighlightColor: 'transparent',
             }}
           >
             {saving ? 'Procesando...' : mode === 'signup' ? 'Crear cuenta' : 'Ingresar'}
@@ -162,18 +168,23 @@ export default function AuthPage() {
         </form>
 
         <button
+          type="button"
           onClick={() => {
             setMode((value) => (value === 'login' ? 'signup' : 'login'));
             setError('');
           }}
           style={{
-            marginTop: 12,
+            marginTop: 4,
+            width: '100%',
             background: 'none',
             border: 'none',
             color: '#F9D100',
-            padding: 0,
+            padding: '12px 8px',
+            minHeight: 48,
             cursor: 'pointer',
             fontSize: 13,
+            textAlign: 'center',
+            WebkitTapHighlightColor: 'transparent',
           }}
         >
           {mode === 'signup' ? 'Ya tengo cuenta' : 'No tengo cuenta, quiero registrarme'}

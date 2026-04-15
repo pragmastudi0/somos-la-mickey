@@ -6,6 +6,8 @@ import { ChevronLeft, ShoppingBag, Wallet, Plus, Check } from 'lucide-react';
 import ProgressBar from '@/components/shared/ProgressBar';
 import MetodoPagoBadge from '@/components/shared/MetodoPagoBadge';
 import NuevaCompraModal from '@/components/admin/NuevaCompraModal';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { getAdminPageShellStyle, adminPrimaryCtaStyle } from '@/lib/adminPageShell';
 
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 const fmtDate = (d) => {
@@ -15,6 +17,7 @@ const fmtDate = (d) => {
 };
 
 export default function ClienteDetalle() {
+  const isMobile = useIsMobile();
   const params = new URLSearchParams(window.location.search);
   const clienteId = params.get('id');
 
@@ -75,10 +78,11 @@ export default function ClienteDetalle() {
   const tieneCustom = cliente.porcentaje_efectivo_custom != null || cliente.porcentaje_tarjeta_custom != null;
 
   return (
-    <div style={{ padding: '28px', maxWidth: 860, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ ...getAdminPageShellStyle(isMobile), maxWidth: 860 }}>
       <Link to={createPageUrl('Clientes')} style={{
         display: 'inline-flex', alignItems: 'center', gap: 5,
         color: '#888888', textDecoration: 'none', fontSize: 13, marginBottom: 20,
+        minHeight: 44, WebkitTapHighlightColor: 'transparent',
       }}>
         <ChevronLeft size={14} /> Volver a socios
       </Link>
@@ -86,10 +90,10 @@ export default function ClienteDetalle() {
       {/* Header */}
       <div style={{
         background: '#161616', border: '1px solid #1F1F1F',
-        borderRadius: 14, padding: '22px 24px', marginBottom: 16,
+        borderRadius: 14, padding: isMobile ? '16px 18px' : '22px 24px', marginBottom: 16,
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0, flex: '1 1 240px' }}>
           <div style={{
             width: 50, height: 50, borderRadius: 12,
             background: 'rgba(232,0,29,0.1)',
@@ -98,11 +102,14 @@ export default function ClienteDetalle() {
           }}>
             {cliente.nombre?.charAt(0).toUpperCase()}
           </div>
-          <div>
-            <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 22, letterSpacing: '-0.01em', color: '#FFFFFF' }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{
+              fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: isMobile ? 18 : 22,
+              letterSpacing: '-0.01em', color: '#FFFFFF', wordBreak: 'break-word',
+            }}>
               {cliente.nombre}
             </div>
-            <div style={{ color: '#888888', fontSize: 12, marginTop: 2 }}>
+            <div style={{ color: '#888888', fontSize: 12, marginTop: 2, wordBreak: 'break-word', lineHeight: 1.4 }}>
               {cliente.email} {cliente.telefono && `· ${cliente.telefono}`} · Alta {fmtDate(cliente.fecha_alta)}
             </div>
             {tieneCustom && (
@@ -121,30 +128,40 @@ export default function ClienteDetalle() {
             )}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 9 }}>
+        <div style={{
+          display: 'flex', gap: 9, flexWrap: 'wrap',
+          flex: isMobile ? '1 1 100%' : '0 0 auto', justifyContent: isMobile ? 'stretch' : 'flex-end',
+        }}>
           <button
+            type="button"
             onClick={() => setShowCompraModal(true)}
             style={{
               background: 'transparent', color: '#FFFFFF',
               border: '2px solid #E8001D',
-              borderRadius: 99, padding: '9px 16px', cursor: 'pointer',
+              borderRadius: 99, padding: '10px 16px', cursor: 'pointer',
               fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6,
               fontFamily: "'Nunito', sans-serif",
+              minHeight: 44,
+              ...adminPrimaryCtaStyle(isMobile),
             }}
           >
             <Plus size={13} /> Nueva compra
           </button>
           {cicloActivo?.puede_retirar && (
             <button
+              type="button"
               onClick={handlePagarReintegro}
               disabled={pagandoReintegro}
               style={{
                 background: '#E8001D', color: '#FFFFFF',
-                border: 'none', borderRadius: 99, padding: '9px 16px',
+                border: 'none', borderRadius: 99, padding: '10px 16px',
                 cursor: pagandoReintegro ? 'not-allowed' : 'pointer',
                 fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6,
                 opacity: pagandoReintegro ? 0.6 : 1,
                 fontFamily: "'Nunito', sans-serif",
+                minHeight: 44,
+                ...adminPrimaryCtaStyle(isMobile),
+                WebkitTapHighlightColor: 'transparent',
               }}
             >
               <Check size={13} /> {pagandoReintegro ? 'Procesando...' : `Pagar ${fmt(cicloActivo.acum_reintegro)}`}
@@ -154,7 +171,13 @@ export default function ClienteDetalle() {
       </div>
 
       {/* Métricas */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 10, marginBottom: 16 }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: isMobile
+          ? 'repeat(auto-fit, minmax(140px, 1fr))'
+          : 'repeat(auto-fit, minmax(170px, 1fr))',
+        gap: 10, marginBottom: 16,
+      }}>
         {[
           { label: 'Reintegro acumulado', value: fmt(cicloActivo?.acum_reintegro || 0), accent: '#F9D100' },
           { label: 'Total compras', value: totalCompras },
@@ -210,8 +233,35 @@ export default function ClienteDetalle() {
         </div>
         {compras.length === 0 ? (
           <div style={{ padding: '24px', color: '#888888', fontSize: 13, textAlign: 'center' }}>Sin compras registradas</div>
+        ) : isMobile ? (
+          <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {compras.map((cp) => (
+              <div
+                key={cp.id}
+                style={{
+                  border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12,
+                  padding: '12px 14px', fontSize: 13,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 8 }}>
+                  <span style={{ color: '#888888' }}>{fmtDate(cp.fecha)}</span>
+                  <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, color: '#FFFFFF' }}>{fmt(cp.monto)}</span>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+                  <MetodoPagoBadge metodo={cp.metodo_pago} />
+                  <span style={{ color: '#888888', fontSize: 12 }}>
+                    {cp.porcentaje_aplicado != null ? `${cp.porcentaje_aplicado}%` : '-'}
+                  </span>
+                  <span style={{ color: '#F9D100', fontFamily: "'Nunito', sans-serif", fontWeight: 800 }}>
+                    {fmt(cp.reintegro_generado)}
+                  </span>
+                  <span style={{ color: '#555555', fontSize: 12 }}>Ciclo #{cp.ciclo_numero || 1}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #1F1F1F' }}>

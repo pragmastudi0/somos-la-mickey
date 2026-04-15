@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '@/api/client';
 import { Save, Plus, Trash2, Edit2, Check, X } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { getAdminPageShellStyle, adminHeadingStyle } from '@/lib/adminPageShell';
 
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 
-function SeccionCard({ titulo, nota = '', children }) {
+function SeccionCard({ titulo, nota = '', children, compact = false }) {
   return (
     <div style={{
       background: '#161616', border: '1px solid #1F1F1F',
-      borderRadius: 14, padding: '22px 24px', marginBottom: 18,
+      borderRadius: 14, padding: compact ? '16px 18px' : '22px 24px', marginBottom: 18,
     }}>
       <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 16, color: '#FFFFFF', marginBottom: 4 }}>
         {titulo}
@@ -46,6 +48,7 @@ function NumInput({ label, value, onChange, unit = '%' }) {
 }
 
 export default function Ajustes() {
+  const isMobile = useIsMobile();
   const [config, setConfig] = useState(null);
   const [configId, setConfigId] = useState(null);
   const [clientes, setClientes] = useState([]);
@@ -116,9 +119,9 @@ export default function Ajustes() {
   };
 
   return (
-    <div style={{ padding: '32px 28px', maxWidth: 780, margin: '0 auto', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ ...getAdminPageShellStyle(isMobile), maxWidth: 780 }}>
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: 26, color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em' }}>
+        <h1 style={adminHeadingStyle(isMobile)}>
           Ajustes
         </h1>
         <p style={{ color: '#888888', fontSize: 13, margin: '4px 0 0' }}>
@@ -128,6 +131,7 @@ export default function Ajustes() {
 
       {/* Porcentajes globales */}
       <SeccionCard
+        compact={isMobile}
         titulo="Porcentajes globales de reintegro"
         nota="Estos porcentajes se aplican a todos los socios salvo que tengan un porcentaje personalizado."
       >
@@ -158,6 +162,7 @@ export default function Ajustes() {
 
       {/* Umbral */}
       <SeccionCard
+        compact={isMobile}
         titulo="Umbral de compras para habilitar retiro"
         nota="Los socios podrán pedir su reintegro a partir de esta cantidad de compras en el ciclo."
       >
@@ -183,10 +188,10 @@ export default function Ajustes() {
       </SeccionCard>
 
       {/* Porcentajes personalizados */}
-      <SeccionCard titulo="Porcentajes personalizados por socio">
+      <SeccionCard compact={isMobile} titulo="Porcentajes personalizados por socio">
         {clientesConCustom.length > 0 && (
-          <div style={{ marginBottom: 16 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <div style={{ marginBottom: 16, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: isMobile ? 520 : undefined }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #1F1F1F' }}>
                   {['Socio', '% Efectivo', '% Tarjeta/Transfer.', 'Acciones'].map(h => (
@@ -269,7 +274,7 @@ export default function Ajustes() {
       </SeccionCard>
 
       {/* Datos del negocio */}
-      <SeccionCard titulo="Datos del negocio">
+      <SeccionCard compact={isMobile} titulo="Datos del negocio">
         <div style={{ marginBottom: 14 }}>
           <label style={{ display: 'block', color: '#888888', fontSize: 12, marginBottom: 6 }}>Nombre del negocio</label>
           <input
