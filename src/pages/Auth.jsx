@@ -21,7 +21,7 @@ function inputStyle() {
 
 export default function AuthPage() {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoadingAuth, login, signup, role } = useAuth();
+  const { isAuthenticated, isLoadingAuth, login, signup, role, authError, refreshAuth } = useAuth();
   const [mode, setMode] = useState('login');
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
@@ -31,6 +31,46 @@ export default function AuthPage() {
 
   if (isLoadingAuth) return null;
   if (isAuthenticated) {
+    if (role === null) {
+      if (authError?.type === 'role') {
+        return (
+          <div
+            style={{
+              minHeight: '100vh',
+              display: 'grid',
+              placeItems: 'center',
+              background: '#111111',
+              padding: 16,
+              color: '#FFFFFF',
+              textAlign: 'center',
+              gap: 16,
+            }}
+          >
+            <p style={{ fontSize: 14, color: '#cccccc', maxWidth: 360 }}>{authError.message}</p>
+            <button
+              type="button"
+              onClick={() => void refreshAuth()}
+              style={{
+                border: 'none',
+                borderRadius: 999,
+                background: '#E8001D',
+                color: '#FFFFFF',
+                fontWeight: 700,
+                padding: '11px 20px',
+                cursor: 'pointer',
+              }}
+            >
+              Reintentar
+            </button>
+          </div>
+        );
+      }
+      return (
+        <div className="fixed inset-0 flex items-center justify-center bg-[#111111]">
+          <div className="w-8 h-8 border-4 border-slate-600 border-t-[#E8001D] rounded-full animate-spin" />
+        </div>
+      );
+    }
     return <Navigate to={role === 'admin' ? createPageUrl('Dashboard') : createPageUrl('PortalCliente')} replace />;
   }
 
