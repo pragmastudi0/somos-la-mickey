@@ -7,6 +7,14 @@ function defaultNameFromEmail(email) {
   return local.replace(/[._-]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+function displayNameFromUser(user) {
+  const raw = user?.user_metadata?.nombre;
+  if (raw != null && String(raw).trim() !== '') {
+    return String(raw).trim();
+  }
+  return defaultNameFromEmail(user?.email);
+}
+
 export default async function handler(req, res) {
   if (!allowMethods(req, res, ['POST'])) return;
 
@@ -35,7 +43,7 @@ export default async function handler(req, res) {
         {
           auth_user_id: user.id,
           email: user.email,
-          nombre: defaultNameFromEmail(user.email),
+          nombre: displayNameFromUser(user),
           fecha_alta: new Date().toISOString().slice(0, 10),
           activo: true,
         },

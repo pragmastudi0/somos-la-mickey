@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { createPageUrl } from '@/utils';
 import { toast } from '@/components/ui/use-toast';
+import { mapSupabaseAuthError } from '@/lib/mapSupabaseAuthError';
 
 function inputStyle() {
   return {
@@ -64,7 +65,13 @@ export default function AuthPage() {
         navigate(result.role === 'admin' ? createPageUrl('Dashboard') : createPageUrl('PortalCliente'), { replace: true });
       }
     } catch (submitError) {
-      setError(submitError.message || 'No se pudo autenticar');
+      const friendly = mapSupabaseAuthError(submitError);
+      setError(friendly);
+      toast({
+        variant: 'destructive',
+        title: mode === 'signup' ? 'No se pudo registrar' : 'No se pudo ingresar',
+        description: friendly,
+      });
     } finally {
       setSaving(false);
     }

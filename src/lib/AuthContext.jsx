@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { api } from '@/api/client';
 
@@ -11,16 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState(null);
   const [role, setRole] = useState(null);
 
-  useEffect(() => {
-    initializeAuth();
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setIsAuthenticated(Boolean(session?.user));
-    });
-    return () => listener.subscription.unsubscribe();
-  }, []);
-
-  const loadRole = async (userId) => {
+  const loadRole = useCallback(async (userId) => {
     try {
       const { data, error } = await supabase.from('somoslamickey_profiles').select('role').eq('id', userId).maybeSingle();
       if (error) throw error;
@@ -31,9 +22,9 @@ export const AuthProvider = ({ children }) => {
       setRole('cliente');
       return 'cliente';
     }
-  };
+  }, []);
 
-  const initializeAuth = async () => {
+  const initializeAuth = useCallback(async () => {
     try {
       setIsLoadingAuth(true);
       setAuthError(null);
@@ -44,7 +35,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(Boolean(currentUser));
       if (currentUser && data.session?.access_token) {
         await api.auth.syncCliente(data.session.access_token);
-        await loadRole(currentUser.id); // sets role state
+        await loadRole(currentUser.id);
       } else {
         setRole(null);
       }
@@ -55,7 +46,29 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoadingAuth(false);
     }
-  };
+  }, [loadRole]);
+
+  useEffect(() => {
+    void initializeAuth();
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      setIsAuthenticated(Boolean(session?.user));
+      if (event === 'SIGNED_OUT') {
+        setRole(null);
+      }
+      if (event === 'SIGNED_IN' && session?.access_token && session?.user) {
+        void (async () => {
+          try {
+            await api.auth.syncCliente(session.access_token);
+            await loadRole(session.user.id);
+          } catch {
+            setRole('cliente');
+          }
+        })();
+      }
+    });
+    return () => listener.subscription.unsubscribe();
+  }, [loadRole, initializeAuth]);
 
   const login = async (email, password) => {
     setAuthError(null);

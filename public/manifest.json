@@ -1,0 +1,10 @@
+{
+  "name": "Somos la Mickey",
+  "short_name": "Mickey",
+  "description": "App de socios Somos la Mickey",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#E8001D",
+  "icons": []
+}
