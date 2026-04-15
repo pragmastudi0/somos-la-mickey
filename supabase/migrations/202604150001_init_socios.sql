@@ -22,6 +22,7 @@ create table if not exists public.clientes (
 
 create table if not exists public.configuracion (
   id uuid primary key default gen_random_uuid(),
+  slug_app text not null default 'somos-la-mickey',
   nombre_negocio text not null default 'Somos la Mickey',
   porcentaje_efectivo numeric(5,2) not null default 10,
   porcentaje_tarjeta numeric(5,2) not null default 5,
@@ -70,8 +71,8 @@ create index if not exists idx_compras_cliente_id on public.compras(cliente_id);
 create index if not exists idx_compras_fecha on public.compras(fecha desc);
 create index if not exists idx_promociones_activa on public.promociones(activa);
 
-insert into public.configuracion (nombre_negocio, porcentaje_efectivo, porcentaje_tarjeta, umbral_compras)
-select 'Somos la Mickey', 10, 5, 15
+insert into public.configuracion (slug_app, nombre_negocio, porcentaje_efectivo, porcentaje_tarjeta, umbral_compras)
+select 'somos-la-mickey', 'Somos la Mickey', 10, 5, 15
 where not exists (select 1 from public.configuracion);
 
 create or replace function public.handle_new_user()

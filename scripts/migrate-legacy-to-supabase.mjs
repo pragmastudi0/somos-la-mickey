@@ -34,9 +34,13 @@ const configuracion = source.configuracion || [];
 const ciclos = source.ciclos || [];
 const compras = source.compras || [];
 const promociones = source.promociones || [];
+const configuracionNormalized = configuracion.map((item) => ({
+  ...item,
+  slug_app: item.slug_app || 'somos-la-mickey',
+}));
 
 await upsert('clientes', clientes, 'id');
-await upsert('configuracion', configuracion, 'id');
+await upsert('configuracion', configuracionNormalized, 'id');
 await upsert('ciclos', ciclos, 'id');
 await upsert('compras', compras, 'id');
 await upsert('promociones', promociones, 'id');

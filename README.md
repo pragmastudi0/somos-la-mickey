@@ -1,6 +1,6 @@
-# Somos la Mickey - App Socios
+# somos-la-mickey
 
-Frontend en React + Vite, autenticación con Supabase Auth y capa backend con API Routes de Vercel.
+Frontend en React + Vite, autenticación con Supabase Auth y capa backend con API Routes de Vercel para la app `somos-la-mickey`.
 
 ## Requisitos
 
