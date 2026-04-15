@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { createPageUrl } from '@/utils';
+import { toast } from '@/components/ui/use-toast';
 
 function inputStyle() {
   return {
@@ -38,11 +39,30 @@ export default function AuthPage() {
     setError('');
     try {
       if (mode === 'signup') {
-        await signup(email.trim(), password, nombre.trim());
+        const result = await signup(email.trim(), password, nombre.trim());
+        if (result.user && !result.session) {
+          toast({
+            title: 'Cuenta creada',
+            description:
+              'Revisá tu correo para confirmar el email y luego iniciá sesión. Si la confirmación está desactivada en Supabase, iniciá sesión con tu contraseña.',
+          });
+          setMode('login');
+          setPassword('');
+          return;
+        }
+        toast({
+          title: 'Cuenta lista',
+          description: 'Ya podés usar la app.',
+        });
+        navigate(result.role === 'admin' ? createPageUrl('Dashboard') : createPageUrl('PortalCliente'), { replace: true });
       } else {
-        await login(email.trim(), password);
+        const result = await login(email.trim(), password);
+        toast({
+          title: 'Sesión iniciada',
+          description: 'Bienvenido/a.',
+        });
+        navigate(result.role === 'admin' ? createPageUrl('Dashboard') : createPageUrl('PortalCliente'), { replace: true });
       }
-      navigate(createPageUrl('PortalCliente'), { replace: true });
     } catch (submitError) {
       setError(submitError.message || 'No se pudo autenticar');
     } finally {

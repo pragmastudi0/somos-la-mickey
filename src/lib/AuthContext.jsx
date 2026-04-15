@@ -24,9 +24,12 @@ export const AuthProvider = ({ children }) => {
     try {
       const { data, error } = await supabase.from('somoslamickey_profiles').select('role').eq('id', userId).maybeSingle();
       if (error) throw error;
-      setRole(data?.role || 'cliente');
+      const next = data?.role || 'cliente';
+      setRole(next);
+      return next;
     } catch (error) {
       setRole('cliente');
+      return 'cliente';
     }
   };
 
@@ -39,9 +42,9 @@ export const AuthProvider = ({ children }) => {
       const currentUser = data.session?.user ?? null;
       setUser(currentUser);
       setIsAuthenticated(Boolean(currentUser));
-      if (currentUser) {
-        await api.auth.syncCliente();
-        await loadRole(currentUser.id);
+      if (currentUser && data.session?.access_token) {
+        await api.auth.syncCliente(data.session.access_token);
+        await loadRole(currentUser.id); // sets role state
       } else {
         setRole(null);
       }
@@ -58,11 +61,12 @@ export const AuthProvider = ({ children }) => {
     setAuthError(null);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-    if (data.user) {
-      await api.auth.syncCliente();
-      await loadRole(data.user.id);
+    let resolvedRole = null;
+    if (data.user && data.session?.access_token) {
+      await api.auth.syncCliente(data.session.access_token);
+      resolvedRole = await loadRole(data.user.id);
     }
-    return data;
+    return { ...data, role: resolvedRole };
   };
 
   const signup = async (email, password, nombre = '') => {
@@ -75,11 +79,13 @@ export const AuthProvider = ({ children }) => {
       },
     });
     if (error) throw error;
-    if (data.user) {
-      await api.auth.syncCliente();
-      await loadRole(data.user.id);
+    // Con confirmación por email, session es null: el trigger en Supabase crea perfil/cliente igual.
+    let resolvedRole = null;
+    if (data.user && data.session?.access_token) {
+      await api.auth.syncCliente(data.session.access_token);
+      resolvedRole = await loadRole(data.user.id);
     }
-    return data;
+    return { ...data, role: resolvedRole };
   };
 
   const logout = async () => {

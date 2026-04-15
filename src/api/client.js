@@ -6,10 +6,11 @@ async function getAccessToken() {
 }
 
 async function request(path, options = {}) {
-  const token = await getAccessToken();
+  const { accessToken, ...fetchOptions } = options;
+  const token = accessToken ?? (await getAccessToken());
   const headers = {
     'Content-Type': 'application/json',
-    ...(options.headers || {}),
+    ...(fetchOptions.headers || {}),
   };
 
   if (token) {
@@ -17,7 +18,7 @@ async function request(path, options = {}) {
   }
 
   const response = await fetch(path, {
-    ...options,
+    ...fetchOptions,
     headers,
   });
 
@@ -55,7 +56,12 @@ function createEntityClient(resource) {
 
 export const api = {
   auth: {
-    syncCliente: async () => request('/api/auth/sync-cliente', { method: 'POST' }),
+    /** Pass accessToken from signIn/signUp response when session is not yet in getSession(). */
+    syncCliente: async (accessToken) =>
+      request('/api/auth/sync-cliente', {
+        method: 'POST',
+        ...(accessToken ? { accessToken } : {}),
+      }),
   },
   entities: {
     Cliente: createEntityClient('clientes'),
