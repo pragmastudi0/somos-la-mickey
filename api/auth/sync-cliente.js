@@ -24,17 +24,8 @@ export default async function handler(req, res) {
 
     const { user } = auth;
 
-    const { error: profileError } = await supabaseAdmin
-      .from('somoslamickey_profiles')
-      .upsert(
-        {
-          id: user.id,
-          email: user.email,
-        },
-        { onConflict: 'id' },
-      );
-
-    if (profileError) throw profileError;
+    // No escribir somoslamickey_profiles aquí: el rol lo define la DB (trigger + SQL admin).
+    // Evita que un upsert parcial vuelva a aplicar default 'cliente' al rol.
 
     // Si existe un cliente previo con ese email, lo asociamos al auth_user_id actual.
     const { error: linkByEmailError } = await supabaseAdmin
