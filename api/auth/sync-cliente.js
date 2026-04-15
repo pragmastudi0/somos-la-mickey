@@ -30,12 +30,23 @@ export default async function handler(req, res) {
         {
           id: user.id,
           email: user.email,
-          role: 'cliente',
         },
         { onConflict: 'id' },
       );
 
     if (profileError) throw profileError;
+
+    // Si existe un cliente previo con ese email, lo asociamos al auth_user_id actual.
+    const { error: linkByEmailError } = await supabaseAdmin
+      .from('somoslamickey_clientes')
+      .update({
+        auth_user_id: user.id,
+        activo: true,
+      })
+      .eq('email', user.email)
+      .or(`auth_user_id.is.null,auth_user_id.neq.${user.id}`);
+
+    if (linkByEmailError) throw linkByEmailError;
 
     const { error: clienteError } = await supabaseAdmin
       .from('somoslamickey_clientes')
