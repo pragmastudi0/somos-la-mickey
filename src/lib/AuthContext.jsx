@@ -122,13 +122,17 @@ export const AuthProvider = ({ children }) => {
     return { ...data, role: resolvedRole };
   };
 
-  const signup = async (email, password, nombre = '') => {
+  const signup = async (email, password, nombre = '', fechaNacimiento = '') => {
     setAuthError(null);
+    const meta = { nombre };
+    if (fechaNacimiento && String(fechaNacimiento).trim() !== '') {
+      meta.fecha_nacimiento = String(fechaNacimiento).trim();
+    }
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { nombre },
+        data: meta,
       },
     });
     if (error) throw error;
