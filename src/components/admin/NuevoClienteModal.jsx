@@ -6,18 +6,22 @@ export default function NuevoClienteModal({ onClose, onSuccess }) {
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [telefono, setTelefono] = useState('');
+  const [fechaNacimiento, setFechaNacimiento] = useState('');
   const [saving, setSaving] = useState(false);
+  const hoy = new Date().toISOString().split('T')[0];
 
   const handleGuardar = async () => {
     if (!nombre || !email) return;
     setSaving(true);
-    await api.entities.Cliente.create({
+    const payload = {
       nombre,
       email,
-      telefono,
+      telefono: telefono || undefined,
       fecha_alta: new Date().toISOString().split('T')[0],
       activo: true,
-    });
+    };
+    if (fechaNacimiento) payload.fecha_nacimiento = fechaNacimiento;
+    await api.entities.Cliente.create(payload);
     setSaving(false);
     onSuccess();
   };
@@ -98,6 +102,19 @@ export default function NuevoClienteModal({ onClose, onSuccess }) {
               />
             </div>
           ))}
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', color: '#888888', fontSize: 12, marginBottom: 6 }}>
+              Fecha de nacimiento (opcional)
+            </label>
+            <input
+              type="date"
+              value={fechaNacimiento}
+              onChange={e => setFechaNacimiento(e.target.value)}
+              max={hoy}
+              style={inputStyle}
+            />
+          </div>
 
           <div style={{ display: 'flex', gap: 9, marginTop: 8 }}>
             <button

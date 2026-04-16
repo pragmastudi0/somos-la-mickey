@@ -110,7 +110,9 @@ export default function ClienteDetalle() {
               {cliente.nombre}
             </div>
             <div style={{ color: '#888888', fontSize: 12, marginTop: 2, wordBreak: 'break-word', lineHeight: 1.4 }}>
-              {cliente.email} {cliente.telefono && `· ${cliente.telefono}`} · Alta {fmtDate(cliente.fecha_alta)}
+              {cliente.email} {cliente.telefono && `· ${cliente.telefono}`}
+              {cliente.fecha_nacimiento && ` · Nac. ${fmtDate(cliente.fecha_nacimiento)}`}
+              {' '}· Alta {fmtDate(cliente.fecha_alta)}
             </div>
             {tieneCustom && (
               <div style={{ marginTop: 5, display: 'flex', gap: 6, flexWrap: 'wrap' }}>

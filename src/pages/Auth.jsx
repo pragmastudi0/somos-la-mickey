@@ -24,8 +24,10 @@ export default function AuthPage() {
   const { isAuthenticated, isLoadingAuth, login, signup, role, authError, refreshAuth } = useAuth();
   const [mode, setMode] = useState('login');
   const [nombre, setNombre] = useState('');
+  const [fechaNacimiento, setFechaNacimiento] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const hoy = new Date().toISOString().split('T')[0];
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -80,7 +82,7 @@ export default function AuthPage() {
     setError('');
     try {
       if (mode === 'signup') {
-        const result = await signup(email.trim(), password, nombre.trim());
+        const result = await signup(email.trim(), password, nombre.trim(), fechaNacimiento);
         if (result.user && !result.session) {
           toast({
             title: 'Cuenta creada',
@@ -89,6 +91,7 @@ export default function AuthPage() {
           });
           setMode('login');
           setPassword('');
+          setFechaNacimiento('');
           return;
         }
         toast({
@@ -131,12 +134,29 @@ export default function AuthPage() {
 
         <form onSubmit={handleSubmit} style={{ marginTop: 18, display: 'grid', gap: 12 }}>
           {mode === 'signup' && (
-            <input
-              value={nombre}
-              onChange={(event) => setNombre(event.target.value)}
-              placeholder="Nombre completo"
-              style={inputStyle()}
-            />
+            <>
+              <input
+                value={nombre}
+                onChange={(event) => setNombre(event.target.value)}
+                placeholder="Nombre completo"
+                style={inputStyle()}
+                autoComplete="name"
+              />
+              <div>
+                <label htmlFor="auth-fecha-nac" style={{ display: 'block', color: '#888888', fontSize: 12, marginBottom: 6 }}>
+                  Fecha de nacimiento
+                </label>
+                <input
+                  id="auth-fecha-nac"
+                  type="date"
+                  value={fechaNacimiento}
+                  onChange={(event) => setFechaNacimiento(event.target.value)}
+                  max={hoy}
+                  required
+                  style={inputStyle()}
+                />
+              </div>
+            </>
           )}
           <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email" style={inputStyle()} />
           <input
@@ -149,7 +169,12 @@ export default function AuthPage() {
           {error && <div style={{ color: '#E8001D', fontSize: 12 }}>{error}</div>}
           <button
             type="submit"
-            disabled={saving || !email || !password || (mode === 'signup' && !nombre)}
+            disabled={
+              saving ||
+              !email ||
+              !password ||
+              (mode === 'signup' && (!nombre || !fechaNacimiento))
+            }
             style={{
               border: 'none',
               borderRadius: 999,
@@ -172,6 +197,7 @@ export default function AuthPage() {
           onClick={() => {
             setMode((value) => (value === 'login' ? 'signup' : 'login'));
             setError('');
+            setFechaNacimiento('');
           }}
           style={{
             marginTop: 4,

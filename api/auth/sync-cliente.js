@@ -15,6 +15,14 @@ function displayNameFromUser(user) {
   return defaultNameFromEmail(user?.email);
 }
 
+function fechaNacimientoFromUser(user) {
+  const raw = user?.user_metadata?.fecha_nacimiento;
+  if (raw == null || String(raw).trim() === '') return null;
+  const s = String(raw).trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+  return s;
+}
+
 export default async function handler(req, res) {
   if (!allowMethods(req, res, ['POST'])) return;
 
@@ -39,18 +47,19 @@ export default async function handler(req, res) {
 
     if (linkByEmailError) throw linkByEmailError;
 
+    const clienteRow = {
+      auth_user_id: user.id,
+      email: user.email,
+      nombre: displayNameFromUser(user),
+      fecha_alta: new Date().toISOString().slice(0, 10),
+      activo: true,
+    };
+    const fn = fechaNacimientoFromUser(user);
+    if (fn) clienteRow.fecha_nacimiento = fn;
+
     const { error: clienteError } = await supabaseAdmin
       .from('somoslamickey_clientes')
-      .upsert(
-        {
-          auth_user_id: user.id,
-          email: user.email,
-          nombre: displayNameFromUser(user),
-          fecha_alta: new Date().toISOString().slice(0, 10),
-          activo: true,
-        },
-        { onConflict: 'auth_user_id' },
-      );
+      .upsert(clienteRow, { onConflict: 'auth_user_id' });
 
     if (clienteError) throw clienteError;
 
