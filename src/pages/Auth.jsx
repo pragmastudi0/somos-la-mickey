@@ -24,6 +24,7 @@ export default function AuthPage() {
   const { isAuthenticated, isLoadingAuth, login, signup, role, authError, refreshAuth } = useAuth();
   const [mode, setMode] = useState('login');
   const [nombre, setNombre] = useState('');
+  const [telefono, setTelefono] = useState('');
   const [fechaNacimiento, setFechaNacimiento] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -82,7 +83,13 @@ export default function AuthPage() {
     setError('');
     try {
       if (mode === 'signup') {
-        const result = await signup(email.trim(), password, nombre.trim(), fechaNacimiento);
+        const result = await signup(
+          email.trim(),
+          password,
+          nombre.trim(),
+          fechaNacimiento,
+          telefono.trim(),
+        );
         if (result.user && !result.session) {
           toast({
             title: 'Cuenta creada',
@@ -92,6 +99,7 @@ export default function AuthPage() {
           setMode('login');
           setPassword('');
           setFechaNacimiento('');
+          setTelefono('');
           return;
         }
         toast({
@@ -143,6 +151,21 @@ export default function AuthPage() {
                 autoComplete="name"
               />
               <div>
+                <label htmlFor="auth-telefono" style={{ display: 'block', color: '#888888', fontSize: 12, marginBottom: 6 }}>
+                  Número de teléfono
+                </label>
+                <input
+                  id="auth-telefono"
+                  type="tel"
+                  value={telefono}
+                  onChange={(event) => setTelefono(event.target.value)}
+                  placeholder="Ej: 351-555-1234"
+                  style={inputStyle()}
+                  autoComplete="tel"
+                  required
+                />
+              </div>
+              <div>
                 <label htmlFor="auth-fecha-nac" style={{ display: 'block', color: '#888888', fontSize: 12, marginBottom: 6 }}>
                   Fecha de nacimiento
                 </label>
@@ -173,7 +196,7 @@ export default function AuthPage() {
               saving ||
               !email ||
               !password ||
-              (mode === 'signup' && (!nombre || !fechaNacimiento))
+              (mode === 'signup' && (!nombre || !telefono || !fechaNacimiento))
             }
             style={{
               border: 'none',
@@ -198,6 +221,7 @@ export default function AuthPage() {
             setMode((value) => (value === 'login' ? 'signup' : 'login'));
             setError('');
             setFechaNacimiento('');
+            setTelefono('');
           }}
           style={{
             marginTop: 4,
