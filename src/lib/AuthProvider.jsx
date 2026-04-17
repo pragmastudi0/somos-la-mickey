@@ -80,7 +80,12 @@ export const AuthProvider = ({ children }) => {
       if (event === 'SIGNED_OUT') {
         setRole(null);
       }
-      if (event === 'SIGNED_IN' && session?.access_token && session?.user) {
+      // INITIAL_SESSION restaura sesión persistida sin emitir SIGNED_IN; sin esto role queda null y la app carga para siempre.
+      const shouldSyncRole =
+        (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') &&
+        session?.access_token &&
+        session?.user;
+      if (shouldSyncRole) {
         void (async () => {
           try {
             await api.auth.syncCliente(session.access_token);
