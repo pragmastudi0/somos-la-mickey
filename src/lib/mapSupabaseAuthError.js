@@ -31,7 +31,7 @@ export function mapSupabaseAuthError(error) {
     return byCode.weak_password;
   }
   if (msg.includes('invalid_grant')) {
-    return 'No se pudo iniciar sesión. Si recién te registraste, confirmá el email o revisá usuario y contraseña.';
+    return 'No se pudo iniciar sesión. Revisá el email y la contraseña, o probá de nuevo en unos minutos.';
   }
   if (msg.includes('database error saving new user')) {
     return 'No se pudo crear la cuenta por una configuración pendiente en Supabase (tablas/trigger de alta). Aplicá las migraciones y reintentá.';

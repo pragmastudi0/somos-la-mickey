@@ -94,7 +94,7 @@ export default function AuthPage() {
           toast({
             title: 'Cuenta creada',
             description:
-              'Revisá tu correo para confirmar el email y luego iniciá sesión. Si la confirmación está desactivada en Supabase, iniciá sesión con tu contraseña.',
+              'Tu cuenta quedó lista, pero la sesión no inició automáticamente. Probá ingresar con el mismo email y contraseña.',
           });
           setMode('login');
           setPassword('');
