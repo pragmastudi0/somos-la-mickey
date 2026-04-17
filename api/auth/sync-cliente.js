@@ -30,7 +30,17 @@ export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
     if (!auth) return;
 
-    const { user } = auth;
+    const { user, role } = auth;
+
+    if (role === 'admin') {
+      const { error: deleteError } = await supabaseAdmin
+        .from('somoslamickey_clientes')
+        .delete()
+        .eq('auth_user_id', user.id);
+      if (deleteError) throw deleteError;
+      sendJson(res, 200, { ok: true });
+      return;
+    }
 
     // No escribir somoslamickey_profiles aquí: el rol lo define la DB (trigger + SQL admin).
     // Evita que un upsert parcial vuelva a aplicar default 'cliente' al rol.
