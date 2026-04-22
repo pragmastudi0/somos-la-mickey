@@ -23,6 +23,12 @@ function fechaNacimientoFromUser(user) {
   return s;
 }
 
+function telefonoFromUser(user) {
+  const raw = user?.user_metadata?.telefono;
+  if (raw == null || String(raw).trim() === '') return null;
+  return String(raw).trim();
+}
+
 export default async function handler(req, res) {
   if (!allowMethods(req, res, ['POST'])) return;
 
@@ -69,6 +75,8 @@ export default async function handler(req, res) {
     };
     const fn = fechaNacimientoFromUser(user);
     if (fn) clienteRow.fecha_nacimiento = fn;
+    const tel = telefonoFromUser(user);
+    if (tel) clienteRow.telefono = tel;
 
     const { error: clienteError } = await supabaseAdmin
       .from('somoslamickey_clientes')

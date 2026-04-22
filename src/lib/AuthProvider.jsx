@@ -152,7 +152,7 @@ export const AuthProvider = ({ children }) => {
     return { ...data, role: resolvedRole };
   };
 
-  const signup = async (email, password, nombre = '', fechaNacimiento = '') => {
+  const signup = async (email, password, nombre = '', fechaNacimiento = '', telefono = '') => {
     setAuthError(null);
     if (!ensureAppConfigured()) {
       throw new Error(configurationError || 'Falta configurar VITE_APPLICATION_ID para ejecutar esta app.');
@@ -160,6 +160,9 @@ export const AuthProvider = ({ children }) => {
     const meta = { nombre };
     if (fechaNacimiento && String(fechaNacimiento).trim() !== '') {
       meta.fecha_nacimiento = String(fechaNacimiento).trim();
+    }
+    if (telefono && String(telefono).trim() !== '') {
+      meta.telefono = String(telefono).trim();
     }
     const { data, error } = await supabase.auth.signUp({
       email,
