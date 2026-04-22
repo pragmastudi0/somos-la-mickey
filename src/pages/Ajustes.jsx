@@ -12,6 +12,14 @@ import {
 
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 
+/** Valores por defecto hasta que exista fila en BD o se hidrate el estado local (evita config === null en el primer render). */
+const CONFIG_DEFAULT = {
+  porcentaje_efectivo: 10,
+  porcentaje_tarjeta: 5,
+  umbral_compras: 15,
+  nombre_negocio: 'Somos la Mickey',
+};
+
 function SeccionCard({ titulo, nota = '', children, compact = false }) {
   return (
     <div style={{
@@ -67,6 +75,8 @@ export default function Ajustes() {
   const updateClienteMutation = useUpdateClienteMutation();
   const clientes = clientesQuery.data || [];
   const loading = clientesQuery.isLoading || configuracionQuery.isLoading;
+  const cfgRow = configuracionQuery.data?.[0];
+  const mergedConfig = config ?? cfgRow ?? CONFIG_DEFAULT;
 
   useEffect(() => {
     const cfg = configuracionQuery.data?.[0];
@@ -84,18 +94,27 @@ export default function Ajustes() {
     if (loading || configId || createConfiguracionMutation.isPending) return;
     if ((configuracionQuery.data || []).length > 0) return;
     void createConfiguracionMutation.mutateAsync({
-      porcentaje_efectivo: 10,
-      porcentaje_tarjeta: 5,
-      umbral_compras: 15,
-      nombre_negocio: 'Somos la Mickey',
+      porcentaje_efectivo: CONFIG_DEFAULT.porcentaje_efectivo,
+      porcentaje_tarjeta: CONFIG_DEFAULT.porcentaje_tarjeta,
+      umbral_compras: CONFIG_DEFAULT.umbral_compras,
+      nombre_negocio: CONFIG_DEFAULT.nombre_negocio,
     }).then(() => {
       void load();
     });
   }, [loading, configId, configuracionQuery.data, createConfiguracionMutation]);
 
+  const patchConfig = (partial) => {
+    setConfig((prev) => {
+      const base = { ...CONFIG_DEFAULT, ...(cfgRow || {}), ...(prev || {}) };
+      return typeof partial === 'function' ? partial(base) : { ...base, ...partial };
+    });
+  };
+
   const handleSave = async (seccion) => {
+    const id = configId ?? cfgRow?.id;
+    if (!id) return;
     setSaving(seccion);
-    await updateConfiguracionMutation.mutateAsync({ id: configId, payload: config });
+    await updateConfiguracionMutation.mutateAsync({ id, payload: mergedConfig });
     setSaving(null);
   };
 
@@ -118,6 +137,8 @@ export default function Ajustes() {
   };
 
   if (loading) return <div style={{ color: '#444444', textAlign: 'center', padding: 80 }}>Cargando...</div>;
+
+  const canPersistConfig = Boolean(configId ?? cfgRow?.id);
 
   const clientesConCustom = clientes.filter(c => c.porcentaje_efectivo_custom != null || c.porcentaje_tarjeta_custom != null);
   const clientesSinCustom = clientes.filter(c => c.activo && c.porcentaje_efectivo_custom == null && c.porcentaje_tarjeta_custom == null);
@@ -148,23 +169,23 @@ export default function Ajustes() {
       >
         <NumInput
           label="Reintegro por pago en efectivo (%)"
-          value={config.porcentaje_efectivo ?? 10}
-          onChange={v => setConfig(c => ({ ...c, porcentaje_efectivo: parseFloat(v) || 0 }))}
+          value={mergedConfig.porcentaje_efectivo ?? 10}
+          onChange={v => patchConfig({ porcentaje_efectivo: parseFloat(v) || 0 })}
         />
         <NumInput
           label="Reintegro por tarjeta o transferencia (%)"
-          value={config.porcentaje_tarjeta ?? 5}
-          onChange={v => setConfig(c => ({ ...c, porcentaje_tarjeta: parseFloat(v) || 0 }))}
+          value={mergedConfig.porcentaje_tarjeta ?? 5}
+          onChange={v => patchConfig({ porcentaje_tarjeta: parseFloat(v) || 0 })}
         />
         <button
           onClick={() => handleSave('porcentajes')}
-          disabled={saving === 'porcentajes'}
+          disabled={!canPersistConfig || saving === 'porcentajes'}
           style={{
             background: '#E8001D', color: '#FFFFFF', border: 'none',
-            borderRadius: 99, padding: '10px 20px', cursor: 'pointer',
+            borderRadius: 99, padding: '10px 20px', cursor: !canPersistConfig || saving === 'porcentajes' ? 'not-allowed' : 'pointer',
             fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6,
             fontFamily: "'Nunito', sans-serif",
-            opacity: saving === 'porcentajes' ? 0.6 : 1,
+            opacity: !canPersistConfig || saving === 'porcentajes' ? 0.6 : 1,
           }}
         >
           <Save size={13} /> {saving === 'porcentajes' ? 'Guardando...' : 'Guardar cambios'}
@@ -179,19 +200,19 @@ export default function Ajustes() {
       >
         <NumInput
           label="Cantidad de compras necesarias"
-          value={config.umbral_compras ?? 15}
-          onChange={v => setConfig(c => ({ ...c, umbral_compras: parseInt(v) || 0 }))}
+          value={mergedConfig.umbral_compras ?? 15}
+          onChange={v => patchConfig({ umbral_compras: parseInt(v, 10) || 0 })}
           unit="compras"
         />
         <button
           onClick={() => handleSave('umbral')}
-          disabled={saving === 'umbral'}
+          disabled={!canPersistConfig || saving === 'umbral'}
           style={{
             background: '#E8001D', color: '#FFFFFF', border: 'none',
-            borderRadius: 99, padding: '10px 20px', cursor: 'pointer',
+            borderRadius: 99, padding: '10px 20px', cursor: !canPersistConfig || saving === 'umbral' ? 'not-allowed' : 'pointer',
             fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6,
             fontFamily: "'Nunito', sans-serif",
-            opacity: saving === 'umbral' ? 0.6 : 1,
+            opacity: !canPersistConfig || saving === 'umbral' ? 0.6 : 1,
           }}
         >
           <Save size={13} /> {saving === 'umbral' ? 'Guardando...' : 'Guardar cambios'}
@@ -289,21 +310,21 @@ export default function Ajustes() {
         <div style={{ marginBottom: 14 }}>
           <label style={{ display: 'block', color: '#888888', fontSize: 12, marginBottom: 6 }}>Nombre del negocio</label>
           <input
-            value={config.nombre_negocio || ''}
-            onChange={e => setConfig(c => ({ ...c, nombre_negocio: e.target.value }))}
+            value={mergedConfig.nombre_negocio || ''}
+            onChange={e => patchConfig({ nombre_negocio: e.target.value })}
             style={{ ...inputStyle, maxWidth: 320 }}
             placeholder="Somos la Mickey"
           />
         </div>
         <button
           onClick={() => handleSave('negocio')}
-          disabled={saving === 'negocio'}
+          disabled={!canPersistConfig || saving === 'negocio'}
           style={{
             background: '#E8001D', color: '#FFFFFF', border: 'none',
-            borderRadius: 99, padding: '10px 20px', cursor: 'pointer',
+            borderRadius: 99, padding: '10px 20px', cursor: !canPersistConfig || saving === 'negocio' ? 'not-allowed' : 'pointer',
             fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6,
             fontFamily: "'Nunito', sans-serif",
-            opacity: saving === 'negocio' ? 0.6 : 1,
+            opacity: !canPersistConfig || saving === 'negocio' ? 0.6 : 1,
           }}
         >
           <Save size={13} /> {saving === 'negocio' ? 'Guardando...' : 'Guardar cambios'}

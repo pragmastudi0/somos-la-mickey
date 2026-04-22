@@ -14,9 +14,9 @@ export default function NuevoClienteModal({ onClose, onSuccess }) {
   const handleGuardar = async () => {
     if (!nombre || !email) return;
     const payload = {
-      nombre,
-      email,
-      telefono: telefono || undefined,
+      nombre: nombre.trim(),
+      email: email.trim(),
+      telefono: telefono.trim() || null,
       fecha_alta: new Date().toISOString().split('T')[0],
       activo: true,
     };
