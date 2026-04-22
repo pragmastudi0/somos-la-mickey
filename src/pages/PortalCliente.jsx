@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '@/api/client';
+import React, { useMemo } from 'react';
 import { Tag, LogOut } from 'lucide-react';
 import ProgressBar from '@/components/shared/ProgressBar';
 import MetodoPagoBadge from '@/components/shared/MetodoPagoBadge';
 import { useAuth } from '@/lib/AuthContext';
+import { useCiclosQuery, useClientesQuery, useComprasQuery, useConfiguracionQuery, usePromocionesQuery } from '@/hooks/useAppEntities';
 
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 const fmtDate = (d) => {
@@ -21,36 +21,35 @@ const BADGE_COLORS = {
 
 export default function PortalCliente() {
   const { user, logout } = useAuth();
-  const [cliente, setCliente] = useState(null);
-  const [compras, setCompras] = useState([]);
-  const [ciclos, setCiclos] = useState([]);
-  const [promos, setPromos] = useState([]);
-  const [config, setConfig] = useState({ umbral_compras: 15 });
-  const [loading, setLoading] = useState(true);
-  const [noEncontrado, setNoEncontrado] = useState(false);
+  const clientesQuery = useClientesQuery();
+  const comprasQuery = useComprasQuery();
+  const ciclosQuery = useCiclosQuery();
+  const promocionesQuery = usePromocionesQuery();
+  const configuracionQuery = useConfiguracionQuery();
+  const loading = clientesQuery.isLoading || comprasQuery.isLoading || ciclosQuery.isLoading || promocionesQuery.isLoading || configuracionQuery.isLoading;
 
-  useEffect(() => {
-    const init = async () => {
-      const [clientes, allCompras, allCiclos, allPromos, cfgs] = await Promise.all([
-      api.entities.Cliente.list(),
-      api.entities.Compra.list(),
-      api.entities.Ciclo.list(),
-      api.entities.Promocion.list(),
-      api.entities.Configuracion.list()]
-      );
-      const cl = clientes.find((c) => c.email === user?.email);
-      if (!cl) {setNoEncontrado(true);setLoading(false);return;}
-      setCliente(cl);
-      setCompras(allCompras.filter((c) => c.cliente_id === cl.id).sort((a, b) => new Date(b.fecha || b.created_date) - new Date(a.fecha || a.created_date)));
-      setCiclos(allCiclos.filter((c) => c.cliente_id === cl.id).sort((a, b) => (b.numero || 0) - (a.numero || 0)));
-      setPromos(allPromos.filter((p) => p.activa));
-      if (cfgs && cfgs.length > 0) setConfig(cfgs[0]);
-      setLoading(false);
-    };
-    if (user?.email) {
-      init().catch(() => setLoading(false));
-    }
-  }, [user]);
+  const cliente = useMemo(
+    () => (clientesQuery.data || []).find((c) => c.email === user?.email) || null,
+    [clientesQuery.data, user?.email],
+  );
+  const compras = useMemo(
+    () => (comprasQuery.data || [])
+      .filter((c) => c.cliente_id === cliente?.id)
+      .sort((a, b) => new Date(b.fecha || b.created_date) - new Date(a.fecha || a.created_date)),
+    [comprasQuery.data, cliente?.id],
+  );
+  const ciclos = useMemo(
+    () => (ciclosQuery.data || [])
+      .filter((c) => c.cliente_id === cliente?.id)
+      .sort((a, b) => (b.numero || 0) - (a.numero || 0)),
+    [ciclosQuery.data, cliente?.id],
+  );
+  const promos = useMemo(
+    () => (promocionesQuery.data || []).filter((p) => p.activa),
+    [promocionesQuery.data],
+  );
+  const config = configuracionQuery.data?.[0] || { umbral_compras: 15 };
+  const noEncontrado = !!user?.email && !loading && !cliente;
 
   if (loading) {
     return (

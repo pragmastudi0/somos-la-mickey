@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '@/api/client';
+import React, { useMemo, useState } from 'react';
 import { Plus, Trash2, Pause, Play, Tag } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getAdminPageShellStyle, adminHeadingStyle, adminHeaderRowStyle, adminPrimaryCtaStyle } from '@/lib/adminPageShell';
+import { useCreatePromocionMutation, useDeletePromocionMutation, usePromocionesQuery, useUpdatePromocionMutation } from '@/hooks/useAppEntities';
 
 const BADGE_COLORS = {
   HOT:      { bg: 'rgba(232,0,29,0.12)',    color: '#E8001D' },
@@ -19,22 +19,17 @@ const fmtDate = (d) => {
 
 const BADGES = ['NUEVO', 'HOT', 'ESPECIAL', 'LIMITADO'];
 
-function NuevaPromoModal({ onClose, onSuccess }) {
+function NuevaPromoModal({ onClose, onSave, saving }) {
   const [titulo, setTitulo] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [badge, setBadge] = useState('NUEVO');
-  const [saving, setSaving] = useState(false);
-
   const handleSave = async () => {
     if (!titulo || !descripcion) return;
-    setSaving(true);
-    await api.entities.Promocion.create({
+    await onSave({
       titulo, descripcion, badge,
       activa: true,
       fecha_inicio: new Date().toISOString().split('T')[0],
     });
-    setSaving(false);
-    onSuccess();
   };
 
   const inputStyle = {
@@ -132,26 +127,25 @@ function NuevaPromoModal({ onClose, onSuccess }) {
 
 export default function Promociones() {
   const isMobile = useIsMobile();
-  const [promos, setPromos] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  const load = async () => {
-    const p = await api.entities.Promocion.list();
-    setPromos(p.sort((a, b) => (b.activa ? 1 : 0) - (a.activa ? 1 : 0)));
-    setLoading(false);
-  };
-
-  useEffect(() => { load(); }, []);
+  const promocionesQuery = usePromocionesQuery();
+  const createPromocionMutation = useCreatePromocionMutation();
+  const updatePromocionMutation = useUpdatePromocionMutation();
+  const deletePromocionMutation = useDeletePromocionMutation();
+  const promos = useMemo(
+    () => [...(promocionesQuery.data || [])].sort((a, b) => (b.activa ? 1 : 0) - (a.activa ? 1 : 0)),
+    [promocionesQuery.data],
+  );
+  const loading = promocionesQuery.isLoading;
 
   const toggle = async (promo) => {
-    await api.entities.Promocion.update(promo.id, { activa: !promo.activa });
-    load();
+    await updatePromocionMutation.mutateAsync({ id: promo.id, payload: { activa: !promo.activa } });
+    await promocionesQuery.refetch();
   };
 
   const eliminar = async (id) => {
-    await api.entities.Promocion.delete(id);
-    load();
+    await deletePromocionMutation.mutateAsync(id);
+    await promocionesQuery.refetch();
   };
 
   const activas = promos.filter(p => p.activa);
@@ -294,7 +288,12 @@ export default function Promociones() {
       {showModal && (
         <NuevaPromoModal
           onClose={() => setShowModal(false)}
-          onSuccess={() => { setShowModal(false); load(); }}
+          saving={createPromocionMutation.isPending}
+          onSave={async (payload) => {
+            await createPromocionMutation.mutateAsync(payload);
+            setShowModal(false);
+            await promocionesQuery.refetch();
+          }}
         />
       )}
     </div>

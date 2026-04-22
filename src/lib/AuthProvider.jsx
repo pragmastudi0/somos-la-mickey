@@ -2,12 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { AuthContext } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabaseClient';
 import { api } from '@/api/client';
+import { useApp } from '@/context/AppContext';
 
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export const AuthProvider = ({ children }) => {
+  const { applicationId } = useApp();
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
@@ -15,8 +17,15 @@ export const AuthProvider = ({ children }) => {
   const [role, setRole] = useState(null);
 
   const loadRole = useCallback(async (userId) => {
+    if (!applicationId) return null;
+
     const fetchOnce = async () =>
-      supabase.from('somoslamickey_profiles').select('role').eq('id', userId).maybeSingle();
+      supabase
+        .from('somoslamickey_profiles')
+        .select('role')
+        .eq('id', userId)
+        .eq('application_id', applicationId)
+        .maybeSingle();
 
     let { data, error } = await fetchOnce();
     if (error) {
@@ -38,7 +47,7 @@ export const AuthProvider = ({ children }) => {
     setRole(next);
     setAuthError((prev) => (prev?.type === 'role' ? null : prev));
     return next;
-  }, []);
+  }, [applicationId]);
 
   const initializeAuth = useCallback(async () => {
     try {
@@ -51,7 +60,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(Boolean(currentUser));
       if (currentUser && data.session?.access_token) {
         try {
-          await api.auth.syncCliente(data.session.access_token);
+          await api.auth.syncCliente(data.session.access_token, applicationId);
         } catch (syncErr) {
           console.error('syncCliente', syncErr);
           setAuthError({
@@ -88,7 +97,7 @@ export const AuthProvider = ({ children }) => {
       if (shouldSyncRole) {
         void (async () => {
           try {
-            await api.auth.syncCliente(session.access_token);
+            await api.auth.syncCliente(session.access_token, applicationId);
           } catch (syncErr) {
             console.error('syncCliente', syncErr);
             setAuthError({
@@ -110,7 +119,7 @@ export const AuthProvider = ({ children }) => {
     let resolvedRole = null;
     if (data.user && data.session?.access_token) {
       try {
-        await api.auth.syncCliente(data.session.access_token);
+        await api.auth.syncCliente(data.session.access_token, applicationId);
       } catch (syncErr) {
         console.error('syncCliente', syncErr);
         setAuthError({
@@ -143,7 +152,7 @@ export const AuthProvider = ({ children }) => {
     let resolvedRole = null;
     if (data.user && data.session?.access_token) {
       try {
-        await api.auth.syncCliente(data.session.access_token);
+        await api.auth.syncCliente(data.session.access_token, applicationId);
       } catch (syncErr) {
         console.error('syncCliente', syncErr);
         setAuthError({

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '@/api/client';
+import React, { useMemo, useState } from 'react';
 import { Check, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getAdminPageShellStyle, adminHeadingStyle } from '@/lib/adminPageShell';
+import { useCiclosQuery, useClientesQuery, useCreateCicloMutation, useUpdateCicloMutation } from '@/hooks/useAppEntities';
 
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 const fmtDate = (d) => {
@@ -13,35 +13,33 @@ const fmtDate = (d) => {
 
 export default function Reintegros() {
   const isMobile = useIsMobile();
-  const [ciclos, setCiclos] = useState([]);
-  const [clientes, setClientes] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [pagando, setPagando] = useState(null);
-
-  const load = async () => {
-    const [ci, cl] = await Promise.all([
-      api.entities.Ciclo.list(),
-      api.entities.Cliente.list(),
-    ]);
-    setCiclos(ci.sort((a, b) => (b.numero || 0) - (a.numero || 0)));
-    setClientes(cl);
-    setLoading(false);
+  const ciclosQuery = useCiclosQuery();
+  const clientesQuery = useClientesQuery();
+  const updateCicloMutation = useUpdateCicloMutation();
+  const createCicloMutation = useCreateCicloMutation();
+  const ciclos = useMemo(
+    () => [...(ciclosQuery.data || [])].sort((a, b) => (b.numero || 0) - (a.numero || 0)),
+    [ciclosQuery.data],
+  );
+  const clientes = clientesQuery.data || [];
+  const loading = ciclosQuery.isLoading || clientesQuery.isLoading;
+  const reload = async () => {
+    await Promise.all([ciclosQuery.refetch(), clientesQuery.refetch()]);
   };
-
-  useEffect(() => { load(); }, []);
 
   const handlePagar = async (ciclo) => {
     setPagando(ciclo.id);
     const today = new Date().toISOString().split('T')[0];
-    await api.entities.Ciclo.update(ciclo.id, {
+    await updateCicloMutation.mutateAsync({ id: ciclo.id, payload: {
       retirado: true, monto_retirado: ciclo.acum_reintegro, fecha_retiro: today,
-    });
-    await api.entities.Ciclo.create({
+    } });
+    await createCicloMutation.mutateAsync({
       cliente_id: ciclo.cliente_id, numero: (ciclo.numero || 0) + 1,
       acum_reintegro: 0, compras_count: 0, puede_retirar: false, retirado: false,
     });
     setPagando(null);
-    load();
+    await reload();
   };
 
   const pendientes = ciclos.filter(c => c.puede_retirar && !c.retirado);

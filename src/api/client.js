@@ -1,13 +1,22 @@
 import { supabase } from '@/lib/supabaseClient';
 
+let activeApplicationId = null;
+
+export function setApiApplicationId(applicationId) {
+  activeApplicationId = typeof applicationId === 'string' && applicationId.trim()
+    ? applicationId.trim()
+    : null;
+}
+
 async function getAccessToken() {
   const { data } = await supabase.auth.getSession();
   return data.session?.access_token ?? null;
 }
 
 async function request(path, options = {}) {
-  const { accessToken, ...fetchOptions } = options;
+  const { accessToken, applicationId, ...fetchOptions } = options;
   const token = accessToken ?? (await getAccessToken());
+  const scopedApplicationId = applicationId ?? activeApplicationId;
   const headers = {
     'Content-Type': 'application/json',
     ...(fetchOptions.headers || {}),
@@ -15,6 +24,9 @@ async function request(path, options = {}) {
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
+  }
+  if (scopedApplicationId) {
+    headers['x-application-id'] = scopedApplicationId;
   }
 
   const response = await fetch(path, {
@@ -47,19 +59,24 @@ function buildQuery(sort, limit) {
 
 function createEntityClient(resource) {
   return {
-    list: async (sort, limit) => request(`/api/${resource}${buildQuery(sort, limit)}`),
-    create: async (payload) => request(`/api/${resource}`, { method: 'POST', body: JSON.stringify(payload) }),
-    update: async (id, payload) => request(`/api/${resource}/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
-    delete: async (id) => request(`/api/${resource}/${id}`, { method: 'DELETE' }),
+    list: async (sort, limit, applicationId) =>
+      request(`/api/${resource}${buildQuery(sort, limit)}`, { applicationId }),
+    create: async (payload, applicationId) =>
+      request(`/api/${resource}`, { method: 'POST', body: JSON.stringify(payload), applicationId }),
+    update: async (id, payload, applicationId) =>
+      request(`/api/${resource}/${id}`, { method: 'PATCH', body: JSON.stringify(payload), applicationId }),
+    delete: async (id, applicationId) =>
+      request(`/api/${resource}/${id}`, { method: 'DELETE', applicationId }),
   };
 }
 
 export const api = {
   auth: {
     /** Pass accessToken from signIn/signUp response when session is not yet in getSession(). */
-    syncCliente: async (accessToken) =>
+    syncCliente: async (accessToken, applicationId) =>
       request('/api/auth/sync-cliente', {
         method: 'POST',
+        applicationId,
         ...(accessToken ? { accessToken } : {}),
       }),
   },

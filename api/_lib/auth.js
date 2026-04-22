@@ -1,5 +1,6 @@
 import { supabaseAdmin } from './supabaseAdmin.js';
 import { sendError } from './http.js';
+import { requireApplicationId } from './application.js';
 
 async function getUserByToken(token) {
   const { data, error } = await supabaseAdmin.auth.getUser(token);
@@ -7,11 +8,12 @@ async function getUserByToken(token) {
   return data.user;
 }
 
-async function getRole(userId) {
+async function getRole(userId, applicationId) {
   const { data, error } = await supabaseAdmin
     .from('somoslamickey_profiles')
     .select('role')
     .eq('id', userId)
+    .eq('application_id', applicationId)
     .maybeSingle();
 
   if (error) throw error;
@@ -19,6 +21,9 @@ async function getRole(userId) {
 }
 
 export async function requireAuth(req, res) {
+  const applicationId = requireApplicationId(req, res);
+  if (!applicationId) return null;
+
   const header = req.headers.authorization || '';
   if (!header.startsWith('Bearer ')) {
     sendError(res, 401, 'Missing bearer token');
@@ -32,8 +37,8 @@ export async function requireAuth(req, res) {
     return null;
   }
 
-  const role = await getRole(user.id);
-  return { user, role };
+  const role = await getRole(user.id, applicationId);
+  return { user, role, applicationId };
 }
 
 export async function requireAdmin(req, res) {

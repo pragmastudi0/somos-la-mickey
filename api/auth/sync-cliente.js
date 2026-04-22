@@ -30,13 +30,14 @@ export default async function handler(req, res) {
     const auth = await requireAuth(req, res);
     if (!auth) return;
 
-    const { user, role } = auth;
+    const { user, role, applicationId } = auth;
 
     if (role === 'admin') {
       const { error: deleteError } = await supabaseAdmin
         .from('somoslamickey_clientes')
         .delete()
-        .eq('auth_user_id', user.id);
+        .eq('auth_user_id', user.id)
+        .eq('application_id', applicationId);
       if (deleteError) throw deleteError;
       sendJson(res, 200, { ok: true });
       return;
@@ -53,6 +54,7 @@ export default async function handler(req, res) {
         activo: true,
       })
       .eq('email', user.email)
+      .eq('application_id', applicationId)
       .or(`auth_user_id.is.null,auth_user_id.neq.${user.id}`);
 
     if (linkByEmailError) throw linkByEmailError;
@@ -63,6 +65,7 @@ export default async function handler(req, res) {
       nombre: displayNameFromUser(user),
       fecha_alta: new Date().toISOString().slice(0, 10),
       activo: true,
+      application_id: applicationId,
     };
     const fn = fechaNacimientoFromUser(user);
     if (fn) clienteRow.fecha_nacimiento = fn;

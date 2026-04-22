@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '@/api/client';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Wallet, Users, Clock, TrendingUp, Plus, ShoppingBag, ArrowRight } from 'lucide-react';
@@ -7,6 +6,7 @@ import NuevaCompraModal from '@/components/admin/NuevaCompraModal';
 import MetodoPagoBadge from '@/components/shared/MetodoPagoBadge';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getAdminPageShellStyle, adminHeadingStyle } from '@/lib/adminPageShell';
+import { useCiclosQuery, useClientesQuery, useComprasQuery, useConfiguracionQuery } from '@/hooks/useAppEntities';
 
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 const fmtDate = (d) => {
@@ -45,28 +45,25 @@ function StatCard({ icon: Icon, label, value, sub, accentColor, bgColor }) {
 
 export default function Dashboard() {
   const isMobile = useIsMobile();
-  const [clientes, setClientes] = useState([]);
-  const [compras, setCompras] = useState([]);
-  const [ciclos, setCiclos] = useState([]);
-  const [config, setConfig] = useState({ umbral_compras: 15 });
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const clientesQuery = useClientesQuery();
+  const comprasQuery = useComprasQuery({ sort: '-fecha', limit: 50 });
+  const ciclosQuery = useCiclosQuery();
+  const configuracionQuery = useConfiguracionQuery();
+  const clientes = clientesQuery.data || [];
+  const compras = comprasQuery.data || [];
+  const ciclos = ciclosQuery.data || [];
+  const config = configuracionQuery.data?.[0] || { umbral_compras: 15 };
+  const loading = clientesQuery.isLoading || comprasQuery.isLoading || ciclosQuery.isLoading || configuracionQuery.isLoading;
 
-  const load = async () => {
-    const [c, co, ci, cfgs] = await Promise.all([
-      api.entities.Cliente.list(),
-      api.entities.Compra.list('-fecha', 50),
-      api.entities.Ciclo.list(),
-      api.entities.Configuracion.list(),
+  const reload = async () => {
+    await Promise.all([
+      clientesQuery.refetch(),
+      comprasQuery.refetch(),
+      ciclosQuery.refetch(),
+      configuracionQuery.refetch(),
     ]);
-    setClientes(c);
-    setCompras(co);
-    setCiclos(ci);
-    if (cfgs && cfgs.length > 0) setConfig(cfgs[0]);
-    setLoading(false);
   };
-
-  useEffect(() => { load(); }, []);
 
   const umbral = config.umbral_compras || 15;
   const ciclosActivos = ciclos.filter(c => !c.retirado);
@@ -274,7 +271,7 @@ export default function Dashboard() {
         <NuevaCompraModal
           clientes={clientes.filter(c => c.activo)}
           onClose={() => setShowModal(false)}
-          onSuccess={() => { setShowModal(false); load(); }}
+          onSuccess={() => { setShowModal(false); void reload(); }}
         />
       )}
     </div>
