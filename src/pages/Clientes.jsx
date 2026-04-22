@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '@/api/client';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Search, Plus, ChevronRight } from 'lucide-react';
@@ -7,6 +6,7 @@ import ProgressBar from '@/components/shared/ProgressBar';
 import NuevoClienteModal from '@/components/admin/NuevoClienteModal';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getAdminPageShellStyle, adminHeadingStyle, adminHeaderRowStyle, adminPrimaryCtaStyle } from '@/lib/adminPageShell';
+import { useCiclosQuery, useClientesQuery, useConfiguracionQuery } from '@/hooks/useAppEntities';
 
 const fmtDate = (d) => {
   if (!d) return '-';
@@ -17,26 +17,15 @@ const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits:
 
 export default function Clientes() {
   const isMobile = useIsMobile();
-  const [clientes, setClientes] = useState([]);
-  const [ciclos, setCiclos] = useState([]);
-  const [config, setConfig] = useState({ umbral_compras: 15 });
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  const load = async () => {
-    const [c, ci, cfgs] = await Promise.all([
-      api.entities.Cliente.list(),
-      api.entities.Ciclo.list(),
-      api.entities.Configuracion.list(),
-    ]);
-    setClientes(c);
-    setCiclos(ci);
-    if (cfgs && cfgs.length > 0) setConfig(cfgs[0]);
-    setLoading(false);
-  };
-
-  useEffect(() => { load(); }, []);
+  const clientesQuery = useClientesQuery();
+  const ciclosQuery = useCiclosQuery();
+  const configuracionQuery = useConfiguracionQuery();
+  const clientes = clientesQuery.data || [];
+  const ciclos = ciclosQuery.data || [];
+  const config = configuracionQuery.data?.[0] || { umbral_compras: 15 };
+  const loading = clientesQuery.isLoading || ciclosQuery.isLoading || configuracionQuery.isLoading;
 
   const umbral = config.umbral_compras || 15;
 
@@ -180,7 +169,10 @@ export default function Clientes() {
       {showModal && (
         <NuevoClienteModal
           onClose={() => setShowModal(false)}
-          onSuccess={() => { setShowModal(false); load(); }}
+          onSuccess={() => {
+            setShowModal(false);
+            void Promise.all([clientesQuery.refetch(), ciclosQuery.refetch(), configuracionQuery.refetch()]);
+          }}
         />
       )}
     </div>

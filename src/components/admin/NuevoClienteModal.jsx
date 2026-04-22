@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { api } from '@/api/client';
 import { X } from 'lucide-react';
+import { useCreateClienteMutation } from '@/hooks/useAppEntities';
 
 export default function NuevoClienteModal({ onClose, onSuccess }) {
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [telefono, setTelefono] = useState('');
   const [fechaNacimiento, setFechaNacimiento] = useState('');
-  const [saving, setSaving] = useState(false);
+  const createClienteMutation = useCreateClienteMutation();
+  const saving = createClienteMutation.isPending;
   const hoy = new Date().toISOString().split('T')[0];
 
   const handleGuardar = async () => {
     if (!nombre || !email) return;
-    setSaving(true);
     const payload = {
       nombre,
       email,
@@ -21,8 +21,7 @@ export default function NuevoClienteModal({ onClose, onSuccess }) {
       activo: true,
     };
     if (fechaNacimiento) payload.fecha_nacimiento = fechaNacimiento;
-    await api.entities.Cliente.create(payload);
-    setSaving(false);
+    await createClienteMutation.mutateAsync(payload);
     onSuccess();
   };
 

@@ -1,8 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '@/api/client';
+import React, { useEffect, useState } from 'react';
 import { Save, Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getAdminPageShellStyle, adminHeadingStyle } from '@/lib/adminPageShell';
+import {
+  useClientesQuery,
+  useConfiguracionQuery,
+  useCreateConfiguracionMutation,
+  useUpdateClienteMutation,
+  useUpdateConfiguracionMutation,
+} from '@/hooks/useAppEntities';
 
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 
@@ -51,58 +57,63 @@ export default function Ajustes() {
   const isMobile = useIsMobile();
   const [config, setConfig] = useState(null);
   const [configId, setConfigId] = useState(null);
-  const [clientes, setClientes] = useState([]);
   const [saving, setSaving] = useState(null);
   const [editandoExcepcion, setEditandoExcepcion] = useState(null);
   const [nuevaExcepcion, setNuevaExcepcion] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const clientesQuery = useClientesQuery();
+  const configuracionQuery = useConfiguracionQuery();
+  const createConfiguracionMutation = useCreateConfiguracionMutation();
+  const updateConfiguracionMutation = useUpdateConfiguracionMutation();
+  const updateClienteMutation = useUpdateClienteMutation();
+  const clientes = clientesQuery.data || [];
+  const loading = clientesQuery.isLoading || configuracionQuery.isLoading;
+
+  useEffect(() => {
+    const cfg = configuracionQuery.data?.[0];
+    if (cfg) {
+      setConfig({ ...cfg });
+      setConfigId(cfg.id);
+    }
+  }, [configuracionQuery.data]);
 
   const load = async () => {
-    const [cfgs, cls] = await Promise.all([
-      api.entities.Configuracion.list(),
-      api.entities.Cliente.list(),
-    ]);
-    if (cfgs && cfgs.length > 0) {
-      setConfig({ ...cfgs[0] });
-      setConfigId(cfgs[0].id);
-    } else {
-      // Crear configuración inicial
-      const nueva = await api.entities.Configuracion.create({
-        porcentaje_efectivo: 10,
-        porcentaje_tarjeta: 5,
-        umbral_compras: 15,
-        nombre_negocio: 'Somos la Mickey',
-      });
-      setConfig({ ...nueva });
-      setConfigId(nueva.id);
-    }
-    setClientes(cls);
-    setLoading(false);
+    await Promise.all([clientesQuery.refetch(), configuracionQuery.refetch()]);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (loading || configId || createConfiguracionMutation.isPending) return;
+    if ((configuracionQuery.data || []).length > 0) return;
+    void createConfiguracionMutation.mutateAsync({
+      porcentaje_efectivo: 10,
+      porcentaje_tarjeta: 5,
+      umbral_compras: 15,
+      nombre_negocio: 'Somos la Mickey',
+    }).then(() => {
+      void load();
+    });
+  }, [loading, configId, configuracionQuery.data, createConfiguracionMutation]);
 
   const handleSave = async (seccion) => {
     setSaving(seccion);
-    await api.entities.Configuracion.update(configId, config);
+    await updateConfiguracionMutation.mutateAsync({ id: configId, payload: config });
     setSaving(null);
   };
 
   const handleGuardarExcepcion = async (cliente, pctEfectivo, pctTarjeta) => {
-    await api.entities.Cliente.update(cliente.id, {
+    await updateClienteMutation.mutateAsync({ id: cliente.id, payload: {
       porcentaje_efectivo_custom: pctEfectivo !== '' ? parseFloat(pctEfectivo) : null,
       porcentaje_tarjeta_custom: pctTarjeta !== '' ? parseFloat(pctTarjeta) : null,
-    });
+    } });
     setEditandoExcepcion(null);
     setNuevaExcepcion(null);
     load();
   };
 
   const handleQuitarExcepcion = async (cliente) => {
-    await api.entities.Cliente.update(cliente.id, {
+    await updateClienteMutation.mutateAsync({ id: cliente.id, payload: {
       porcentaje_efectivo_custom: null,
       porcentaje_tarjeta_custom: null,
-    });
+    } });
     load();
   };
 

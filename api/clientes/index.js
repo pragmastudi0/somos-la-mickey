@@ -10,10 +10,14 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const auth = await requireAuth(req, res);
       if (!auth) return;
+      const { applicationId } = auth;
 
-      let query = supabaseAdmin.from('somoslamickey_clientes').select('*');
+      let query = supabaseAdmin
+        .from('somoslamickey_clientes')
+        .select('*')
+        .eq('application_id', applicationId);
       if (auth.role !== 'admin') {
-        const cliente = await getClienteByAuthUserId(auth.user.id);
+        const cliente = await getClienteByAuthUserId(auth.user.id, applicationId);
         if (!cliente?.id) return sendJson(res, 200, []);
         query = query.eq('id', cliente.id);
       }
@@ -25,8 +29,9 @@ export default async function handler(req, res) {
 
     const auth = await requireAdmin(req, res);
     if (!auth) return;
+    const { applicationId } = auth;
 
-    const payload = req.body || {};
+    const payload = { ...(req.body || {}), application_id: applicationId };
     const { data, error } = await supabaseAdmin
       .from('somoslamickey_clientes')
       .insert(payload)

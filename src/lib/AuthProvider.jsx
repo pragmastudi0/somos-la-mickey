@@ -2,21 +2,40 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { AuthContext } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabaseClient';
 import { api } from '@/api/client';
+import { useApp } from '@/context/AppContext';
 
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export const AuthProvider = ({ children }) => {
+  const { applicationId, isConfigured, configurationError } = useApp();
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [authError, setAuthError] = useState(null);
   const [role, setRole] = useState(null);
 
+  const ensureAppConfigured = useCallback(() => {
+    if (isConfigured && applicationId) return true;
+    setAuthError({
+      type: 'config',
+      message: configurationError || 'Falta configurar VITE_APPLICATION_ID para ejecutar esta app.',
+    });
+    setRole(null);
+    return false;
+  }, [applicationId, configurationError, isConfigured]);
+
   const loadRole = useCallback(async (userId) => {
+    if (!ensureAppConfigured()) return null;
+
     const fetchOnce = async () =>
-      supabase.from('somoslamickey_profiles').select('role').eq('id', userId).maybeSingle();
+      supabase
+        .from('somoslamickey_profiles')
+        .select('role')
+        .eq('id', userId)
+        .eq('application_id', applicationId)
+        .maybeSingle();
 
     let { data, error } = await fetchOnce();
     if (error) {
@@ -38,12 +57,16 @@ export const AuthProvider = ({ children }) => {
     setRole(next);
     setAuthError((prev) => (prev?.type === 'role' ? null : prev));
     return next;
-  }, []);
+  }, [applicationId, ensureAppConfigured]);
 
   const initializeAuth = useCallback(async () => {
     try {
       setIsLoadingAuth(true);
       setAuthError(null);
+      if (!ensureAppConfigured()) {
+        setIsAuthenticated(false);
+        return;
+      }
       const { data, error } = await supabase.auth.getSession();
       if (error) throw error;
       const currentUser = data.session?.user ?? null;
@@ -51,7 +74,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(Boolean(currentUser));
       if (currentUser && data.session?.access_token) {
         try {
-          await api.auth.syncCliente(data.session.access_token);
+          await api.auth.syncCliente(data.session.access_token, applicationId);
         } catch (syncErr) {
           console.error('syncCliente', syncErr);
           setAuthError({
@@ -70,7 +93,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoadingAuth(false);
     }
-  }, [loadRole]);
+  }, [ensureAppConfigured, loadRole, applicationId]);
 
   useEffect(() => {
     void initializeAuth();
@@ -88,7 +111,7 @@ export const AuthProvider = ({ children }) => {
       if (shouldSyncRole) {
         void (async () => {
           try {
-            await api.auth.syncCliente(session.access_token);
+            await api.auth.syncCliente(session.access_token, applicationId);
           } catch (syncErr) {
             console.error('syncCliente', syncErr);
             setAuthError({
@@ -105,12 +128,15 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     setAuthError(null);
+    if (!ensureAppConfigured()) {
+      throw new Error(configurationError || 'Falta configurar VITE_APPLICATION_ID para ejecutar esta app.');
+    }
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     let resolvedRole = null;
     if (data.user && data.session?.access_token) {
       try {
-        await api.auth.syncCliente(data.session.access_token);
+        await api.auth.syncCliente(data.session.access_token, applicationId);
       } catch (syncErr) {
         console.error('syncCliente', syncErr);
         setAuthError({
@@ -128,6 +154,9 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (email, password, nombre = '', fechaNacimiento = '') => {
     setAuthError(null);
+    if (!ensureAppConfigured()) {
+      throw new Error(configurationError || 'Falta configurar VITE_APPLICATION_ID para ejecutar esta app.');
+    }
     const meta = { nombre };
     if (fechaNacimiento && String(fechaNacimiento).trim() !== '') {
       meta.fecha_nacimiento = String(fechaNacimiento).trim();
@@ -143,7 +172,7 @@ export const AuthProvider = ({ children }) => {
     let resolvedRole = null;
     if (data.user && data.session?.access_token) {
       try {
-        await api.auth.syncCliente(data.session.access_token);
+        await api.auth.syncCliente(data.session.access_token, applicationId);
       } catch (syncErr) {
         console.error('syncCliente', syncErr);
         setAuthError({

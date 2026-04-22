@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { api } from '@/api/client';
 import { X, Search, ChevronRight, ChevronLeft, Check } from 'lucide-react';
+import { useConfiguracionQuery, useCreateCompraMutation } from '@/hooks/useAppEntities';
 
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 
@@ -18,13 +18,14 @@ export default function NuevaCompraModal({ clientes, clientePreseleccionado = nu
   const [metodo, setMetodo] = useState('');
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
   const [config, setConfig] = useState({ porcentaje_efectivo: 10, porcentaje_tarjeta: 5, umbral_compras: 15 });
-  const [saving, setSaving] = useState(false);
+  const configuracionQuery = useConfiguracionQuery();
+  const createCompraMutation = useCreateCompraMutation();
+  const saving = createCompraMutation.isPending;
 
   useEffect(() => {
-    api.entities.Configuracion.list().then(cfgs => {
-      if (cfgs && cfgs.length > 0) setConfig(cfgs[0]);
-    });
-  }, []);
+    const firstConfig = configuracionQuery.data?.[0];
+    if (firstConfig) setConfig(firstConfig);
+  }, [configuracionQuery.data]);
 
   const getPct = (cli, met) => {
     if (!cli || !met) return 0;
@@ -50,16 +51,12 @@ export default function NuevaCompraModal({ clientes, clientePreseleccionado = nu
 
   const handleGuardar = async () => {
     if (!clienteSel || !monto || !metodo) return;
-    setSaving(true);
-
-    await api.entities.Compra.create({
+    await createCompraMutation.mutateAsync({
       cliente_id: clienteSel.id,
       monto: montoNum,
       metodo_pago: metodo,
       fecha: fecha,
     });
-
-    setSaving(false);
     onSuccess();
   };
 

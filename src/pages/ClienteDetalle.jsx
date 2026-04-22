@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '@/api/client';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ChevronLeft, ShoppingBag, Wallet, Plus, Check } from 'lucide-react';
@@ -8,6 +7,7 @@ import MetodoPagoBadge from '@/components/shared/MetodoPagoBadge';
 import NuevaCompraModal from '@/components/admin/NuevaCompraModal';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getAdminPageShellStyle, adminPrimaryCtaStyle } from '@/lib/adminPageShell';
+import { useCiclosQuery, useClientesQuery, useComprasQuery, useConfiguracionQuery, useCreateCicloMutation, useUpdateCicloMutation } from '@/hooks/useAppEntities';
 
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 const fmtDate = (d) => {
@@ -21,32 +21,35 @@ export default function ClienteDetalle() {
   const params = new URLSearchParams(window.location.search);
   const clienteId = params.get('id');
 
-  const [cliente, setCliente] = useState(null);
-  const [compras, setCompras] = useState([]);
-  const [ciclos, setCiclos] = useState([]);
-  const [config, setConfig] = useState({ umbral_compras: 15 });
   const [showCompraModal, setShowCompraModal] = useState(false);
   const [pagandoReintegro, setPagandoReintegro] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  const load = async () => {
-    const [clientes, allCompras, allCiclos, cfgs] = await Promise.all([
-      api.entities.Cliente.list(),
-      api.entities.Compra.list(),
-      api.entities.Ciclo.list(),
-      api.entities.Configuracion.list(),
-    ]);
-    const c = clientes.find(cl => cl.id === clienteId);
-    const mis = allCompras.filter(cp => cp.cliente_id === clienteId);
-    const misCiclos = allCiclos.filter(ci => ci.cliente_id === clienteId);
-    setCliente(c);
-    setCompras(mis.sort((a, b) => new Date(b.fecha || b.created_date) - new Date(a.fecha || a.created_date)));
-    setCiclos(misCiclos.sort((a, b) => (b.numero || 0) - (a.numero || 0)));
-    if (cfgs && cfgs.length > 0) setConfig(cfgs[0]);
-    setLoading(false);
+  const clientesQuery = useClientesQuery();
+  const comprasQuery = useComprasQuery();
+  const ciclosQuery = useCiclosQuery();
+  const configuracionQuery = useConfiguracionQuery();
+  const updateCicloMutation = useUpdateCicloMutation();
+  const createCicloMutation = useCreateCicloMutation();
+  const loading = clientesQuery.isLoading || comprasQuery.isLoading || ciclosQuery.isLoading || configuracionQuery.isLoading;
+  const cliente = useMemo(
+    () => (clientesQuery.data || []).find((cl) => cl.id === clienteId) || null,
+    [clientesQuery.data, clienteId],
+  );
+  const compras = useMemo(
+    () => (comprasQuery.data || [])
+      .filter((cp) => cp.cliente_id === clienteId)
+      .sort((a, b) => new Date(b.fecha || b.created_date) - new Date(a.fecha || a.created_date)),
+    [comprasQuery.data, clienteId],
+  );
+  const ciclos = useMemo(
+    () => (ciclosQuery.data || [])
+      .filter((ci) => ci.cliente_id === clienteId)
+      .sort((a, b) => (b.numero || 0) - (a.numero || 0)),
+    [ciclosQuery.data, clienteId],
+  );
+  const config = configuracionQuery.data?.[0] || { umbral_compras: 15 };
+  const reload = async () => {
+    await Promise.all([clientesQuery.refetch(), comprasQuery.refetch(), ciclosQuery.refetch(), configuracionQuery.refetch()]);
   };
-
-  useEffect(() => { load(); }, [clienteId]);
 
   const cicloActivo = ciclos.find(c => !c.retirado);
   const ciclosRetirados = ciclos.filter(c => c.retirado);
@@ -56,15 +59,15 @@ export default function ClienteDetalle() {
     if (!cicloActivo) return;
     setPagandoReintegro(true);
     const today = new Date().toISOString().split('T')[0];
-    await api.entities.Ciclo.update(cicloActivo.id, {
+    await updateCicloMutation.mutateAsync({ id: cicloActivo.id, payload: {
       retirado: true, monto_retirado: cicloActivo.acum_reintegro, fecha_retiro: today,
-    });
-    await api.entities.Ciclo.create({
+    } });
+    await createCicloMutation.mutateAsync({
       cliente_id: clienteId, numero: (cicloActivo.numero || 0) + 1,
       acum_reintegro: 0, compras_count: 0, puede_retirar: false, retirado: false,
     });
     setPagandoReintegro(false);
-    load();
+    await reload();
   };
 
   if (loading) return <div style={{ color: '#888888', textAlign: 'center', padding: 80 }}>Cargando...</div>;
@@ -325,7 +328,7 @@ export default function ClienteDetalle() {
           clientes={[cliente]}
           clientePreseleccionado={cliente}
           onClose={() => setShowCompraModal(false)}
-          onSuccess={() => { setShowCompraModal(false); load(); }}
+          onSuccess={() => { setShowCompraModal(false); void reload(); }}
         />
       )}
     </div>

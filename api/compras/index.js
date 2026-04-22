@@ -3,17 +3,23 @@ import { requireAdmin, requireAuth } from '../_lib/auth.js';
 import { supabaseAdmin } from '../_lib/supabaseAdmin.js';
 import { applySortAndLimit, getClienteByAuthUserId } from '../_lib/data.js';
 
-async function getConfig() {
-  const { data, error } = await supabaseAdmin.from('somoslamickey_configuracion').select('*').limit(1).maybeSingle();
+async function getConfig(applicationId) {
+  const { data, error } = await supabaseAdmin
+    .from('somoslamickey_configuracion')
+    .select('*')
+    .eq('application_id', applicationId)
+    .limit(1)
+    .maybeSingle();
   if (error) throw error;
   return data || { porcentaje_efectivo: 10, porcentaje_tarjeta: 5, umbral_compras: 15 };
 }
 
-async function getOrCreateActiveCiclo(clienteId) {
+async function getOrCreateActiveCiclo(clienteId, applicationId) {
   const { data: ciclos, error } = await supabaseAdmin
     .from('somoslamickey_ciclos')
     .select('*')
     .eq('cliente_id', clienteId)
+    .eq('application_id', applicationId)
     .order('numero', { ascending: false });
   if (error) throw error;
 
@@ -25,6 +31,7 @@ async function getOrCreateActiveCiclo(clienteId) {
     .from('somoslamickey_ciclos')
     .insert({
       cliente_id: clienteId,
+      application_id: applicationId,
       numero: maxNumero + 1,
       acum_reintegro: 0,
       compras_count: 0,
@@ -45,10 +52,14 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const auth = await requireAuth(req, res);
       if (!auth) return;
+      const { applicationId } = auth;
 
-      let query = supabaseAdmin.from('somoslamickey_compras').select('*');
+      let query = supabaseAdmin
+        .from('somoslamickey_compras')
+        .select('*')
+        .eq('application_id', applicationId);
       if (auth.role !== 'admin') {
-        const cliente = await getClienteByAuthUserId(auth.user.id);
+        const cliente = await getClienteByAuthUserId(auth.user.id, applicationId);
         if (!cliente?.id) return sendJson(res, 200, []);
         query = query.eq('cliente_id', cliente.id);
       }
@@ -60,13 +71,15 @@ export default async function handler(req, res) {
 
     const auth = await requireAdmin(req, res);
     if (!auth) return;
+    const { applicationId } = auth;
 
     const payload = req.body || {};
-    const config = await getConfig();
+    const config = await getConfig(applicationId);
     const { data: cliente, error: clienteError } = await supabaseAdmin
       .from('somoslamickey_clientes')
       .select('*')
       .eq('id', payload.cliente_id)
+      .eq('application_id', applicationId)
       .single();
     if (clienteError) throw clienteError;
 
@@ -78,10 +91,11 @@ export default async function handler(req, res) {
         : cliente.porcentaje_tarjeta_custom ?? config.porcentaje_tarjeta ?? 5;
 
     const reintegro = Math.round((monto * pct) / 100);
-    const cicloActivo = await getOrCreateActiveCiclo(payload.cliente_id);
+    const cicloActivo = await getOrCreateActiveCiclo(payload.cliente_id, applicationId);
 
     const compraInput = {
       cliente_id: payload.cliente_id,
+      application_id: applicationId,
       monto,
       metodo_pago: metodo,
       reintegro_generado: reintegro,
@@ -107,7 +121,8 @@ export default async function handler(req, res) {
         acum_reintegro: (cicloActivo.acum_reintegro || 0) + reintegro,
         puede_retirar: newCount >= umbral,
       })
-      .eq('id', cicloActivo.id);
+      .eq('id', cicloActivo.id)
+      .eq('application_id', applicationId);
     if (cicloError) throw cicloError;
 
     sendJson(res, 201, compra);

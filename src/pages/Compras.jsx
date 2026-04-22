@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '@/api/client';
+import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import MetodoPagoBadge from '@/components/shared/MetodoPagoBadge';
 import NuevaCompraModal from '@/components/admin/NuevaCompraModal';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getAdminPageShellStyle, adminHeadingStyle, adminHeaderRowStyle, adminPrimaryCtaStyle } from '@/lib/adminPageShell';
+import { useClientesQuery, useComprasQuery } from '@/hooks/useAppEntities';
 
 const fmt = (n) => `$${(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
 const fmtDate = (d) => {
@@ -17,23 +17,13 @@ const METODOS = ['todos', 'efectivo', 'tarjeta', 'transferencia'];
 
 export default function Compras() {
   const isMobile = useIsMobile();
-  const [compras, setCompras] = useState([]);
-  const [clientes, setClientes] = useState([]);
   const [filtro, setFiltro] = useState('todos');
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  const load = async () => {
-    const [co, cl] = await Promise.all([
-      api.entities.Compra.list(),
-      api.entities.Cliente.list(),
-    ]);
-    setCompras(co.sort((a, b) => new Date(b.fecha || b.created_date) - new Date(a.fecha || a.created_date)));
-    setClientes(cl);
-    setLoading(false);
-  };
-
-  useEffect(() => { load(); }, []);
+  const comprasQuery = useComprasQuery();
+  const clientesQuery = useClientesQuery();
+  const compras = [...(comprasQuery.data || [])].sort((a, b) => new Date(b.fecha || b.created_date) - new Date(a.fecha || a.created_date));
+  const clientes = clientesQuery.data || [];
+  const loading = comprasQuery.isLoading || clientesQuery.isLoading;
 
   const filtered = filtro === 'todos' ? compras : compras.filter(c => c.metodo_pago === filtro);
 
@@ -177,7 +167,7 @@ export default function Compras() {
         <NuevaCompraModal
           clientes={clientes.filter(c => c.activo)}
           onClose={() => setShowModal(false)}
-          onSuccess={() => { setShowModal(false); load(); }}
+          onSuccess={() => { setShowModal(false); void Promise.all([comprasQuery.refetch(), clientesQuery.refetch()]); }}
         />
       )}
     </div>
