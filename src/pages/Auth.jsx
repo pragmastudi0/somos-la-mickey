@@ -22,6 +22,8 @@ function inputStyle() {
 export default function AuthPage() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoadingAuth, login, signup, role, authError, refreshAuth } = useAuth();
+  const isConfigError = authError?.type === 'config';
+
   const [mode, setMode] = useState('login');
   const [nombre, setNombre] = useState('');
   const [telefono, setTelefono] = useState('');
@@ -35,7 +37,7 @@ export default function AuthPage() {
   if (isLoadingAuth) return null;
   if (isAuthenticated) {
     if (role === null) {
-      if (authError?.type === 'role') {
+      if (authError?.type === 'role' || authError?.type === 'config') {
         return (
           <div
             style={{
@@ -50,21 +52,23 @@ export default function AuthPage() {
             }}
           >
             <p style={{ fontSize: 14, color: '#cccccc', maxWidth: 360 }}>{authError.message}</p>
-            <button
-              type="button"
-              onClick={() => void refreshAuth()}
-              style={{
-                border: 'none',
-                borderRadius: 999,
-                background: '#E8001D',
-                color: '#FFFFFF',
-                fontWeight: 700,
-                padding: '11px 20px',
-                cursor: 'pointer',
-              }}
-            >
-              Reintentar
-            </button>
+            {authError?.type !== 'config' && (
+              <button
+                type="button"
+                onClick={() => void refreshAuth()}
+                style={{
+                  border: 'none',
+                  borderRadius: 999,
+                  background: '#E8001D',
+                  color: '#FFFFFF',
+                  fontWeight: 700,
+                  padding: '11px 20px',
+                  cursor: 'pointer',
+                }}
+              >
+                Reintentar
+              </button>
+            )}
           </div>
         );
       }
@@ -139,6 +143,21 @@ export default function AuthPage() {
         <p style={{ marginTop: 6, color: '#888888', fontSize: 13 }}>
           {mode === 'signup' ? 'Crear cuenta de socio' : 'Ingresar a tu cuenta'}
         </p>
+        {isConfigError && (
+          <div
+            style={{
+              marginTop: 12,
+              background: 'rgba(232,0,29,0.08)',
+              border: '1px solid rgba(232,0,29,0.3)',
+              color: '#ffd3d8',
+              borderRadius: 10,
+              padding: '10px 12px',
+              fontSize: 12,
+            }}
+          >
+            {authError.message}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} style={{ marginTop: 18, display: 'grid', gap: 12 }}>
           {mode === 'signup' && (
@@ -194,6 +213,7 @@ export default function AuthPage() {
             type="submit"
             disabled={
               saving ||
+              isConfigError ||
               !email ||
               !password ||
               (mode === 'signup' && (!nombre || !telefono || !fechaNacimiento))

@@ -1,7 +1,13 @@
 import React, { createContext, useContext, useEffect, useMemo } from 'react';
 import { setApiApplicationId } from '@/api/client';
 
-const AppContext = createContext({ applicationId: null });
+const MISSING_APP_ID_MESSAGE = 'Falta configurar VITE_APPLICATION_ID para ejecutar esta app.';
+
+const AppContext = createContext({
+  applicationId: null,
+  isConfigured: false,
+  configurationError: MISSING_APP_ID_MESSAGE,
+});
 
 function resolveApplicationId(providedApplicationId) {
   const fromProp = typeof providedApplicationId === 'string' ? providedApplicationId.trim() : '';
@@ -17,13 +23,20 @@ function resolveApplicationId(providedApplicationId) {
 
 export const AppProvider = ({ children, applicationId }) => {
   const resolvedApplicationId = resolveApplicationId(applicationId);
+  const isConfigured = Boolean(resolvedApplicationId);
+  const configurationError = isConfigured ? null : MISSING_APP_ID_MESSAGE;
+
   useEffect(() => {
-    setApiApplicationId(resolvedApplicationId);
-  }, [resolvedApplicationId]);
+    setApiApplicationId(isConfigured ? resolvedApplicationId : null);
+  }, [isConfigured, resolvedApplicationId]);
 
   const value = useMemo(
-    () => ({ applicationId: resolvedApplicationId }),
-    [resolvedApplicationId],
+    () => ({
+      applicationId: resolvedApplicationId,
+      isConfigured,
+      configurationError,
+    }),
+    [configurationError, isConfigured, resolvedApplicationId],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
