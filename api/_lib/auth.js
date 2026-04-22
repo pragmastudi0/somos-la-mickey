@@ -17,7 +17,7 @@ async function getRole(userId, applicationId) {
     .maybeSingle();
 
   if (error) throw error;
-  return data?.role || 'cliente';
+  return data?.role ?? null;
 }
 
 export async function requireAuth(req, res) {
@@ -37,7 +37,17 @@ export async function requireAuth(req, res) {
     return null;
   }
 
-  const role = await getRole(user.id, applicationId);
+  let role;
+  try {
+    role = await getRole(user.id, applicationId);
+  } catch (err) {
+    sendError(res, 500, err.message || 'Failed to resolve role');
+    return null;
+  }
+  if (!role) {
+    sendError(res, 403, 'Tu cuenta no tiene un perfil para esta aplicación.');
+    return null;
+  }
   return { user, role, applicationId };
 }
 
