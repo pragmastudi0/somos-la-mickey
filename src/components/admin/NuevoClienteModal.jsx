@@ -12,15 +12,19 @@ export default function NuevoClienteModal({ onClose, onSuccess }) {
   const hoy = new Date().toISOString().split('T')[0];
 
   const handleGuardar = async () => {
-    if (!nombre || !email) return;
+    const nombreNormalizado = nombre.trim();
+    const emailNormalizado = email.trim().toLowerCase();
+    const telefonoNormalizado = telefono.trim();
+    const fechaNacimientoNormalizada = fechaNacimiento.trim();
+    if (!nombreNormalizado || !emailNormalizado) return;
     const payload = {
-      nombre,
-      email,
-      telefono: telefono || undefined,
+      nombre: nombreNormalizado,
+      email: emailNormalizado,
+      telefono: telefonoNormalizado || undefined,
       fecha_alta: new Date().toISOString().split('T')[0],
       activo: true,
     };
-    if (fechaNacimiento) payload.fecha_nacimiento = fechaNacimiento;
+    if (fechaNacimientoNormalizada) payload.fecha_nacimiento = fechaNacimientoNormalizada;
     await createClienteMutation.mutateAsync(payload);
     onSuccess();
   };
@@ -129,18 +133,23 @@ export default function NuevoClienteModal({ onClose, onSuccess }) {
             </button>
             <button
               onClick={handleGuardar}
-              disabled={!nombre || !email || saving}
+              disabled={!nombre.trim() || !email.trim() || saving}
               style={{
                 flex: 2, background: '#E8001D', color: '#FFFFFF',
                 border: 'none', borderRadius: 99, padding: '11px',
                 fontSize: 14, fontWeight: 700, fontFamily: "'Nunito', sans-serif",
-                cursor: !nombre || !email || saving ? 'not-allowed' : 'pointer',
-                opacity: !nombre || !email || saving ? 0.4 : 1,
+                cursor: !nombre.trim() || !email.trim() || saving ? 'not-allowed' : 'pointer',
+                opacity: !nombre.trim() || !email.trim() || saving ? 0.4 : 1,
               }}
             >
               {saving ? 'Guardando...' : 'Crear socio'}
             </button>
           </div>
+          {createClienteMutation.error?.message && (
+            <div style={{ marginTop: 10, color: '#E8001D', fontSize: 12 }}>
+              {createClienteMutation.error.message}
+            </div>
+          )}
         </div>
       </div>
     </div>
