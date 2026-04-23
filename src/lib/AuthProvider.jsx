@@ -3,6 +3,7 @@ import { AuthContext } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabaseClient';
 import { api } from '@/api/client';
 import { useApp } from '@/context/AppContext';
+import { SOMOS_LA_MICKEY_SLUG_APP } from '@/lib/appSlug';
 
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -152,14 +153,21 @@ export const AuthProvider = ({ children }) => {
     return { ...data, role: resolvedRole };
   };
 
-  const signup = async (email, password, nombre = '', fechaNacimiento = '') => {
+  const signup = async (email, password, nombre = '', fechaNacimiento = '', telefono = '') => {
     setAuthError(null);
     if (!ensureAppConfigured()) {
       throw new Error(configurationError || 'Falta configurar VITE_APPLICATION_ID para ejecutar esta app.');
     }
-    const meta = { nombre };
+    const meta = {
+      nombre,
+      slug_app: SOMOS_LA_MICKEY_SLUG_APP,
+      application_id: applicationId,
+    };
     if (fechaNacimiento && String(fechaNacimiento).trim() !== '') {
       meta.fecha_nacimiento = String(fechaNacimiento).trim();
+    }
+    if (telefono && String(telefono).trim() !== '') {
+      meta.telefono = String(telefono).trim();
     }
     const { data, error } = await supabase.auth.signUp({
       email,

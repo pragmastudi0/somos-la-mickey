@@ -23,6 +23,12 @@ function fechaNacimientoFromUser(user) {
   return s;
 }
 
+function telefonoFromUser(user) {
+  const raw = user?.user_metadata?.telefono;
+  if (raw == null || String(raw).trim() === '') return null;
+  return String(raw).trim();
+}
+
 export default async function handler(req, res) {
   if (!allowMethods(req, res, ['POST'])) return;
 
@@ -46,13 +52,18 @@ export default async function handler(req, res) {
     // No escribir somoslamickey_profiles aquí: el rol lo define la DB (trigger + SQL admin).
     // Evita que un upsert parcial vuelva a aplicar default 'cliente' al rol.
 
+    const telMeta = telefonoFromUser(user);
+
     // Si existe un cliente previo con ese email, lo asociamos al auth_user_id actual.
+    const linkPatch = {
+      auth_user_id: user.id,
+      activo: true,
+    };
+    if (telMeta) linkPatch.telefono = telMeta;
+
     const { error: linkByEmailError } = await supabaseAdmin
       .from('somoslamickey_clientes')
-      .update({
-        auth_user_id: user.id,
-        activo: true,
-      })
+      .update(linkPatch)
       .eq('email', user.email)
       .eq('application_id', applicationId)
       .or(`auth_user_id.is.null,auth_user_id.neq.${user.id}`);
@@ -69,6 +80,7 @@ export default async function handler(req, res) {
     };
     const fn = fechaNacimientoFromUser(user);
     if (fn) clienteRow.fecha_nacimiento = fn;
+    if (telMeta) clienteRow.telefono = telMeta;
 
     const { error: clienteError } = await supabaseAdmin
       .from('somoslamickey_clientes')
