@@ -94,6 +94,18 @@ node scripts/migrate-legacy-to-supabase.mjs ./ruta/export.json
 
 El JSON de entrada debe incluir arrays: `clientes`, `configuracion`, `ciclos`, `compras`, `promociones`.
 
+## Consistencia clientes/profiles (alta admin + legacy)
+
+- Altas nuevas desde Admin (`/api/clientes`) crean/reusan usuario Auth y guardan `auth_user_id` en `somoslamickey_clientes`.
+- Para datos legacy, se agrega migracion:
+  - `supabase/migrations/202604230001_profiles_backfill_and_clientes_trigger.sql`
+- Esa migracion:
+  - hace backfill de `somoslamickey_profiles` faltantes para clientes con `auth_user_id`,
+  - agrega trigger `AFTER INSERT` en `somoslamickey_clientes` para auto-crear profile cuando venga `auth_user_id`,
+  - deja queries diagnosticas para medir clientes sin `auth_user_id` y clientes sin profile.
+
+Importante: filas legacy con `auth_user_id = null` no se resuelven solas; requieren crear/vincular usuario Auth manualmente o por script adicional.
+
 ## Deploy en Vercel
 
 - Build command: `npm run build`
